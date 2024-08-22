@@ -14,10 +14,7 @@ useHead({
   htmlAttrs: {
     lang: 'en',
   },
-  link: [
-    { rel: 'icon', href: '/favicon.png' },
-    { rel: 'icon', type: 'image/x-icon', href: '/favicon.ico' },
-  ],
+  link: [{ rel: 'icon', type: 'image/x-icon', href: '/favicon.ico' }],
   meta: [{ charset: 'utf-8' }, { name: 'viewport', content: 'width=device-width, initial-scale=1' }],
 });
 useSeoMeta({
