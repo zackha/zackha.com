@@ -25,14 +25,14 @@ onMounted(() => {
       <div class="projects scrollable">
         <div class="project mb">
           <div class="image-wrapper">
-            <a href="https://nuxtcommerce.netlify.app" target="_blank">
+            <a href="https://commerce.nuxt.dev" target="_blank">
               <NuxtImg format="webp" width="300" src="/images/nuxtcommerce.png" />
             </a>
           </div>
           <div class="description">
             <div class="projectname">NuxtCommerce</div>
             <div class="detail">An open-source, dynamic e-commerce solution powered by Nuxt 3 and GraphQL, headless storefront replacement for Woocommerce.</div>
-            <a class="visit link" target="_blank" href="https://nuxtcommerce.netlify.app">examine the project ></a>
+            <a class="visit link" target="_blank" href="https://commerce.nuxt.dev">examine the project ></a>
           </div>
         </div>
         <div class="project mb">
