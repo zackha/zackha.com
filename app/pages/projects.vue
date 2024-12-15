@@ -37,30 +37,6 @@ onMounted(() => {
         </div>
         <div class="project mb">
           <div class="image-wrapper">
-            <a href="https://giris.reklamyap.app" target="_blank">
-              <NuxtImg format="webp" width="300" src="/images/reklamyap-web.jpg" />
-            </a>
-          </div>
-          <div class="description">
-            <div class="projectname">Reklam Yap - Web</div>
-            <div class="detail">A Nuxt3 app that allows supermarkets to create advertisements for their weekly discounts in brochure, social media, and video formats.</div>
-            <a class="visit link" target="_blank" href="https://giris.reklamyap.app">examine the project ></a>
-          </div>
-        </div>
-        <div class="project mb">
-          <div class="image-wrapper">
-            <a href="https://apps.apple.com/mn/app/reklam-yap/id6470991003" target="_blank">
-              <NuxtImg format="webp" width="300" src="/images/reklamyap-app.jpg" />
-            </a>
-          </div>
-          <div class="description">
-            <div class="projectname">Reklam Yap - App</div>
-            <div class="detail">A React Native app that allows supermarkets to create advertisements for their weekly discounts in brochure, social media, and video formats.</div>
-            <a class="visit link" target="_blank" href="https://apps.apple.com/mn/app/reklam-yap/id6470991003">examine the project ></a>
-          </div>
-        </div>
-        <div class="project mb">
-          <div class="image-wrapper">
             <a href="https://madewithai.netlify.app" target="_blank">
               <NuxtImg format="webp" width="300" src="/images/madewithai.jpg" />
             </a>
@@ -81,18 +57,6 @@ onMounted(() => {
             <div class="projectname">retroCommerce</div>
             <div class="detail">An open-source, dynamic e-commerce solution powered by Nuxt 3 and GraphQL, headless storefront replacement for Woocommerce.</div>
             <a class="visit link" target="_blank" href="https://retrocommerce.vercel.app">examine the project ></a>
-          </div>
-        </div>
-        <div class="project mb">
-          <div class="image-wrapper">
-            <a href="https://dashboard.8design.io" target="_blank">
-              <NuxtImg format="webp" width="300" src="/images/8design.jpg" />
-            </a>
-          </div>
-          <div class="description">
-            <div class="projectname">8Design.io</div>
-            <div class="detail">A todo management system cloned from the breeew platform, developed using the Nuxt3 framework.</div>
-            <a class="visit link" target="_blank" href="https://dashboard.8design.io">examine the project ></a>
           </div>
         </div>
         <div class="project mb">
