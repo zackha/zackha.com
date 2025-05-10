@@ -3,10 +3,8 @@ export default defineNuxtConfig({
   compatibilityDate: '2024-04-03',
   future: { compatibilityVersion: 4 },
   devtools: { enabled: true },
-
   app: {
     pageTransition: { name: 'page', mode: 'out-in' },
   },
-
-  modules: ["@nuxt/image"]
+  modules: ['@nuxt/image'],
 });
