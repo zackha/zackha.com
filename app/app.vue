@@ -40,6 +40,7 @@ useSeoMeta({
         <a target="_blank" href="https://www.github.com/zackha" class="link">github</a>
         <a target="_blank" href="mailto:zckhtln@icloud.com?subject=I want you" class="link">email</a>
         <NuxtLink activeClass="active-link" to="/projects" class="link">projects</NuxtLink>
+        <a target="_blank" href="/sefa_bulak_resume_CV.pdf" class="link">cv</a>
         <a target="_blank" href="https://github.com/sponsors/zackha" class="link">sponsor</a>
         <a target="_blank" href="https://pr.nuxt.dev" class="link">prs</a>
       </div>
