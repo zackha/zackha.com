@@ -48,6 +48,15 @@ const { latestArticles, updatedDate, updatedLabel, links } = await useHomePage()
 
     <footer>
       <small>Last updated: <time :datetime="updatedDate">{{ updatedLabel }}</time></small>
+      <small>
+        <a
+          class="visited-link"
+          href="https://github.com/zackha/zackha.com"
+          target="_blank"
+          rel="noopener noreferrer"
+          title="View the source code on GitHub"
+        >Source</a>
+      </small>
     </footer>
   </main>
 </template>

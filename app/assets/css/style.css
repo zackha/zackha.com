@@ -45,6 +45,13 @@ footer {
   color: #92989b;
 }
 
+#profile footer {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 0.35rem 1.25rem;
+}
+
 #profile .research { margin-top: clamp(2rem, 7vw, 4rem); }
 
 #profile .research h2 {
