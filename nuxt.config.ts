@@ -2,7 +2,7 @@
 export default defineNuxtConfig({
   compatibilityDate: '2025-07-15',
   modules: ['@nuxt/content'],
-  css: ['~/assets/css/style.css'],
+  css: ['katex/dist/katex.min.css', '~/assets/css/style.css'],
   app: {
     head: {
       htmlAttrs: { lang: 'en' },
@@ -16,7 +16,14 @@ export default defineNuxtConfig({
   content: {
     build: {
       markdown: {
+        // Render $...$ and $$...$$ as KaTeX at build time (no client-side JS).
+        remarkPlugins: {
+          'remark-math': {},
+        },
         rehypePlugins: {
+          'rehype-katex': {
+            options: { output: 'html', throwOnError: false, strict: 'ignore' },
+          },
           // Cited sources are editorial links; open them in a new tab without the default `nofollow`.
           'rehype-external-links': {
             options: { rel: ['noopener', 'noreferrer'], target: '_blank' },

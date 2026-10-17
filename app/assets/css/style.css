@@ -218,6 +218,17 @@ footer {
   margin-block: 1.5rem;
 }
 
+.article-content .katex-display {
+  max-width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding-block: 0.25rem;
+}
+
+.article-content .katex {
+  font-size: 1.05em;
+}
+
 .article-content table {
   display: block;
   max-width: 100%;
