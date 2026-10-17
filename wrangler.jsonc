@@ -8,7 +8,11 @@
     "not_found_handling": "404-page",
     "html_handling": "auto-trailing-slash"
   },
-  "routes": [{ "pattern": "zackha.com", "custom_domain": true }],
+  // www.zackha.com is redirected to the apex by a Redirect Rule in the Cloudflare dashboard.
+  "routes": [
+    { "pattern": "zackha.com", "custom_domain": true },
+    { "pattern": "www.zackha.com", "custom_domain": true }
+  ],
   // Serve the site only from its canonical domain.
   "workers_dev": false,
   "preview_urls": false
