@@ -1,0 +1,15 @@
+{
+  // Cloudflare Workers static assets: the site is fully prerendered with `nuxt generate`.
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "zackha",
+  "compatibility_date": "2026-10-01",
+  "assets": {
+    "directory": "./.output/public",
+    "not_found_handling": "404-page",
+    "html_handling": "auto-trailing-slash"
+  },
+  "routes": [{ "pattern": "zackha.com", "custom_domain": true }],
+  // Serve the site only from its canonical domain.
+  "workers_dev": false,
+  "preview_urls": false
+}

@@ -1,42 +1,53 @@
+<script setup lang="ts">
+const { latestArticles, updatedDate, updatedLabel, links } = await useHomePage()
+</script>
+
 <template>
-  <div class="about">
-    <div class="face">
-      <NuxtImg src="/face.png" />
-    </div>
-    <div class="name">Sefa Bulak</div>
-    <div>
-      As a frontend engineer and designer specializing in modern web technologies, especially
-      <a target="_blank" href="https://vuejs.org/guide/introduction.html" class="link">Vue</a>
-      (for web),
-      <a target="_blank" href="https://docs.expo.dev/" class="link">Expo</a>
-      (for mobile), and
-      <a target="_blank" href="https://graphql.org/learn/" class="link">GraphQL</a>
-      with headless computing, I deliver innovative, high-performing digital solutions.
-    </div>
-  </div>
+  <main id="profile">
+    <header><h1>Sefa Bulak</h1></header>
+
+    <section aria-label="About">
+      <p><strong>Progress begins with a better question.</strong></p>
+      <p>
+        A software engineer and interface designer exploring how digital
+        products can expand the ways people think, create, and solve problems.
+      </p>
+      <p>
+        Working across design and engineering, with a focus on questioning
+        established approaches when they limit clarity, usefulness, or
+        creative possibility. Innovation is not novelty for its own sake, but
+        the thoughtful application of technology to create meaningful
+        improvements.
+      </p>
+    </section>
+
+    <nav aria-label="Links">
+      <ul>
+        <li v-for="link in links" :key="link.href">
+          <a
+            :href="link.href"
+            :target="link.newTab ? '_blank' : undefined"
+            :rel="link.newTab ? 'noopener noreferrer' : undefined"
+            :title="link.title"
+          >{{ link.label }}</a>
+        </li>
+      </ul>
+    </nav>
+
+    <section v-if="latestArticles.length" class="research" aria-labelledby="research-heading">
+      <h2 id="research-heading">Research</h2>
+      <ul class="research-list">
+        <li v-for="work in latestArticles" :key="work.path">
+          <time :datetime="isoDate(work.updated ?? work.date)">
+            {{ formatDate(work.updated ?? work.date) }}
+          </time>
+          <NuxtLink class="visited-link" :to="work.path">{{ work.title }}</NuxtLink>
+        </li>
+      </ul>
+    </section>
+
+    <footer>
+      <small>Last updated: <time :datetime="updatedDate">{{ updatedLabel }}</time></small>
+    </footer>
+  </main>
 </template>
-<style>
-.about {
-  border: 1px dashed #666;
-  border-radius: 22px;
-  background-color: #fff;
-  box-shadow: 0px 0px 0px 12px #fff;
-  padding: 12px;
-  max-width: 189px;
-}
-.face {
-  text-align: center;
-  height: 188px;
-}
-.face img {
-  width: 188px;
-  height: 188px;
-  border-radius: 12px;
-  box-shadow: 0px 0px 20px -5px rgb(0 0 0 / 40%);
-}
-.name {
-  font-weight: 600;
-  font-size: 15px;
-  margin: 12px 0px 3px;
-}
-</style>
