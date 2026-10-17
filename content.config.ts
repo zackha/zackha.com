@@ -21,6 +21,7 @@ export default defineContentConfig({
         }).optional(),
         venue: z.string().optional(),
         doi: z.string().optional(),
+        pdf: z.string().optional(),
       }),
     }),
   },

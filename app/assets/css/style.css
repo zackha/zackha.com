@@ -84,6 +84,8 @@ footer {
   white-space: nowrap;
 }
 
+#profile .research-title { min-width: 0; }
+
 #profile .research-list a {
   min-width: 0;
   line-height: 1.5;
@@ -259,7 +261,7 @@ footer {
     padding-block: 0.75rem;
   }
 
-  #profile .research-list a { grid-row: 1; }
+  #profile .research-title { grid-row: 1; }
 
   #profile .research-list time {
     grid-row: 2;

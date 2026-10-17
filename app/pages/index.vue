@@ -41,7 +41,19 @@ const { latestArticles, updatedDate, updatedLabel, links } = await useHomePage()
           <time :datetime="isoDate(work.updated ?? work.date)">
             {{ formatDate(work.updated ?? work.date) }}
           </time>
-          <NuxtLink class="visited-link" :to="work.path">{{ work.title }}</NuxtLink>
+          <span class="research-title">
+            <NuxtLink class="visited-link" :to="work.path">{{ work.title }}</NuxtLink>
+            <template v-if="work.pdf">
+              ·
+              <a
+                class="visited-link"
+                :href="work.pdf"
+                target="_blank"
+                rel="noopener noreferrer"
+                title="View this article as PDF"
+              >PDF</a>
+            </template>
+          </span>
         </li>
       </ul>
     </section>

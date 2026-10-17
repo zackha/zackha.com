@@ -20,6 +20,24 @@ useResearchArticleSeo(article)
           <template v-if="article.updated">
             · Last updated: <time :datetime="isoDate(article.updated)">{{ formatDate(article.updated, 'long') }}</time>
           </template>
+          <template v-if="article.pdf">
+            ·
+            <a
+              class="visited-link"
+              :href="article.pdf"
+              target="_blank"
+              rel="noopener noreferrer"
+              title="View this article as PDF"
+            >PDF</a>
+          </template>
+          ·
+          <a
+            class="visited-link"
+            :href="`https://github.com/zackha/zackha.com/blob/main/content/${article.stem}.${article.extension}`"
+            target="_blank"
+            rel="noopener noreferrer"
+            title="View the source of this article on GitHub"
+          >Source</a>
         </p>
       </header>
 
