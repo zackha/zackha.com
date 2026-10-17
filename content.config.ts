@@ -22,6 +22,7 @@ export default defineContentConfig({
         venue: z.string().optional(),
         doi: z.string().optional(),
         pdf: z.string().optional(),
+        zenodo: z.string().url().optional(),
       }),
     }),
   },

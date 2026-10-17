@@ -86,6 +86,13 @@ footer {
 
 #profile .research-title { min-width: 0; }
 
+#profile .research-links {
+  display: block;
+  margin-top: 0.2rem;
+  color: #92989b;
+  font-size: 0.75rem;
+}
+
 #profile .research-list a {
   min-width: 0;
   line-height: 1.5;

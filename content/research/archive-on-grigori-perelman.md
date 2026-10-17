@@ -16,6 +16,8 @@ image:
   width: 1540
   height: 1021
 pdf: /research/archive-on-grigori-perelman/Bulak_2026_Leaving-the-World-While-Alive_Perelman_v1.0.pdf
+zenodo: https://zenodo.org/records/23442928
+doi: 10.5281/zenodo.23442928
 seo:
   title: "Leaving the World While Alive: Grigori Perelman's Withdrawal"
 ---

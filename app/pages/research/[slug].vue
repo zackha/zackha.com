@@ -30,6 +30,16 @@ useResearchArticleSeo(article)
               title="View this article as PDF"
             >PDF</a>
           </template>
+          <template v-if="article.zenodo">
+            ·
+            <a
+              class="visited-link"
+              :href="article.zenodo"
+              target="_blank"
+              rel="noopener noreferrer"
+              title="View this article on Zenodo"
+            >Zenodo</a>
+          </template>
           ·
           <a
             class="visited-link"

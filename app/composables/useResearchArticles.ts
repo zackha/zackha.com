@@ -1,6 +1,6 @@
 export const useResearchArticles = async () => {
   const { data: articles } = await useAsyncData('research-articles', () =>
-    queryCollection('research').select('path', 'title', 'date', 'updated', 'pdf').all(),
+    queryCollection('research').select('path', 'title', 'date', 'updated', 'pdf', 'zenodo').all(),
   )
 
   const latestArticles = computed(() =>

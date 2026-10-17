@@ -43,16 +43,25 @@ const { latestArticles, updatedDate, updatedLabel, links } = await useHomePage()
           </time>
           <span class="research-title">
             <NuxtLink class="visited-link" :to="work.path">{{ work.title }}</NuxtLink>
-            <template v-if="work.pdf">
-              ·
+            <span v-if="work.pdf || work.zenodo" class="research-links">
               <a
+                v-if="work.pdf"
                 class="visited-link"
                 :href="work.pdf"
                 target="_blank"
                 rel="noopener noreferrer"
                 title="View this article as PDF"
               >PDF</a>
-            </template>
+              <template v-if="work.pdf && work.zenodo"> · </template>
+              <a
+                v-if="work.zenodo"
+                class="visited-link"
+                :href="work.zenodo"
+                target="_blank"
+                rel="noopener noreferrer"
+                title="View this article on Zenodo"
+              >Zenodo</a>
+            </span>
           </span>
         </li>
       </ul>
