@@ -7,17 +7,13 @@ const { latestArticles, updatedDate, updatedLabel, links } = await useHomePage()
     <header><h1>Sefa Bulak</h1></header>
 
     <section aria-label="About">
-      <p><strong>Progress begins with a better question.</strong></p>
+      <p><strong>I write software.</strong></p>
       <p>
-        A software engineer and interface designer exploring how digital
-        products can expand the ways people think, create, and solve problems.
-      </p>
-      <p>
-        Working across design and engineering, with a focus on questioning
-        established approaches when they limit clarity, usefulness, or
-        creative possibility. Innovation is not novelty for its own sake, but
-        the thoughtful application of technology to create meaningful
-        improvements.
+        I have been doing it since 2016, from e-commerce platforms and ERP
+        integrations to mobile apps and open source work in the Vue ecosystem.
+        I believe the most important software has not been written yet, and I
+        intend to write some of it. I work in the name of God, and I am in no
+        hurry.
       </p>
     </section>
 
