@@ -13,8 +13,8 @@ keywords:
   - business groups
   - firm growth
 pdf: /research/decisions-not-made/Bulak_2026_Decisions-Not-Made_v1.1.pdf
-zenodo: https://zenodo.org/records/23445787
-doi: 10.5281/zenodo.23445787
+zenodo: https://zenodo.org/records/23459504
+doi: 10.5281/zenodo.23459504
 seo:
   title: "Decisions Not Made: Owner Attention and Organizational Scale"
 ---
