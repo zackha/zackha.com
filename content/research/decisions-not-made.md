@@ -12,6 +12,7 @@ keywords:
   - authority
   - business groups
   - firm growth
+pdf: /research/decisions-not-made/Bulak_2026_Decisions-Not-Made_v1.0.pdf
 seo:
   title: "Decisions Not Made: Owner Attention and the Limits to Organizational Scale"
 ---
