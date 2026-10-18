@@ -38,7 +38,7 @@ export interface OgImageContent {
 
 export const renderOgImage = async ({ eyebrow, title, section, subtitle, hideName }: OgImageContent) => {
   // Long titles step down so they still fit in at most four lines.
-  const titleSize = title.length > 90 ? 52 : title.length > 60 ? 60 : 72
+  const titleSize = title.length > 90 ? 52 : title.length > 45 ? 60 : 72
 
   // Satori sizes boxes as content-box by default; border-box keeps the padding inside the card.
   const tree = el('div', {

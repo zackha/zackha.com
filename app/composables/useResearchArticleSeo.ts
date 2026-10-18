@@ -51,7 +51,11 @@ export const useResearchArticleSeo = (article: ResearchCollectionItem) => {
   })
 
   useHead({
-    titleTemplate: `%s — ${SITE_NAME}`,
+    // Search results show about 60 characters; add the site name only when it still fits.
+    titleTemplate: (pageTitle?: string) => {
+      const withSite = `${pageTitle} — ${SITE_NAME}`
+      return withSite.length <= 60 ? withSite : pageTitle ?? SITE_NAME
+    },
     link: [{ rel: 'canonical', href: canonicalUrl }],
     meta: [
       // Highwire Press tags used by Google Scholar.
