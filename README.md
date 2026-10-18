@@ -35,7 +35,17 @@ seo:
 Write the article here.
 ```
 
-Put the article's media in `public/research/<slug>/`.
+Put the article's media in `public/research/<slug>/`. Export images as WebP no wider than 1280px and give their size, so the page reserves space while they lazy-load:
+
+```md
+![Image description.](/research/a-research-title/01.webp){width="1280" height="850"}
+```
+
+Math (`$...$`, `$$...$$`) is rendered to MathML at build time and typeset by the browser.
+
+## Performance
+
+Pages ship as plain HTML with inlined CSS: no client JavaScript (`features.noScripts`), no web fonts (system serif stack), no external stylesheets. Links are prefetched with speculation rules.
 
 ## Deploy
 

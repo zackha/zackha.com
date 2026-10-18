@@ -2,7 +2,20 @@
 export default defineNuxtConfig({
   compatibilityDate: '2025-07-15',
   modules: ['@nuxt/content'],
-  css: ['katex/dist/katex.min.css', '~/assets/css/style.css'],
+  css: ['~/assets/css/style.css'],
+  features: {
+    // Every page is static content: ship HTML and inlined CSS only. No hydration, no payload,
+    // no JS chunks; links are prefetched/prerendered through speculation rules instead.
+    noScripts: 'production',
+    inlineStyles: true,
+  },
+  experimental: {
+    // Without client navigation nothing reads the app manifest; don't emit it.
+    appManifest: false,
+    // Render 404.html from error.vue at build time. The default is an empty SPA shell, which
+    // stays blank without client scripts; Cloudflare serves this file for unknown URLs.
+    prerenderErrorPages: true,
+  },
   app: {
     head: {
       htmlAttrs: { lang: 'en' },
@@ -16,13 +29,14 @@ export default defineNuxtConfig({
   content: {
     build: {
       markdown: {
-        // Render $...$ and $$...$$ as KaTeX at build time (no client-side JS).
+        // Render $...$ and $$...$$ to MathML at build time. Browsers lay it out natively with the
+        // system math font, so pages need neither KaTeX's stylesheet nor its web fonts.
         remarkPlugins: {
           'remark-math': {},
         },
         rehypePlugins: {
           'rehype-katex': {
-            options: { output: 'html', throwOnError: false, strict: 'ignore' },
+            options: { output: 'mathml', throwOnError: false, strict: 'ignore' },
           },
           // Cited sources are editorial links; open them in a new tab without the default `nofollow`.
           'rehype-external-links': {

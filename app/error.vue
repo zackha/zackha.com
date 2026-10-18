@@ -11,6 +11,7 @@ useSeoMeta({
 </script>
 
 <template>
+  <SiteHeader />
   <main>
     <h1>{{ notFound ? 'Page not found' : 'Something went wrong' }}</h1>
     <p>{{ notFound ? 'The page you are looking for does not exist or has moved.' : 'Please try again later.' }}</p>

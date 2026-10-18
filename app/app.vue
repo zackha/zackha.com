@@ -3,5 +3,6 @@ useDeveloperConsole()
 </script>
 
 <template>
+  <SiteHeader />
   <NuxtPage />
 </template>

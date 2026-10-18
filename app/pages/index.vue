@@ -4,8 +4,6 @@ const { latestArticles, updatedDate, updatedLabel, links } = await useHomePage()
 
 <template>
   <main id="profile">
-    <header><h1>Sefa Bulak</h1></header>
-
     <section aria-label="About">
       <p><strong>I write software.</strong></p>
       <p>

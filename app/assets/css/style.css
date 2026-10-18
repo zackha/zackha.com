@@ -1,33 +1,56 @@
+/*
+ * One screen serif across the site, from fonts already on the reader's device (no web fonts
+ * are downloaded): Charter on Apple devices, Sitka Text or Cambria on Windows. Monospace is
+ * kept for code only.
+ */
 :root {
+  --bg: #111213;
+  --surface: #191b1d;
+  --fg: #d6d6d6;
+  --fg-strong: #eeeeee;
+  --muted: #92989b;
+  --faint: #55595c;
+  --rule: #2a2d30;
+  --accent: #39ff14;
+  --visited: #d6a8ff;
+
+  --mono: "SF Mono", "SFMono-Regular", ui-monospace, Menlo, "Cascadia Mono", Consolas, "DejaVu Sans Mono", monospace;
+  --serif: Charter, "Bitstream Charter", "Sitka Text", Cambria, "Noto Serif", Georgia, serif;
+  --math: "STIX Two Math", "Cambria Math", "Latin Modern Math", math;
+
   color-scheme: dark;
-  font-family: "SF Mono", "SFMono-Regular", ui-monospace, Menlo, Consolas, monospace;
-  font-size: 0.9rem;
-  line-height: 1.4;
-  background: #111213;
-  color: #d6d6d6;
+  font-family: var(--serif);
+  line-height: 1.6;
+  background: var(--bg);
+  color: var(--fg);
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  -webkit-text-size-adjust: 100%;
 }
 
 body {
   box-sizing: border-box;
   width: calc(100% - 2rem);
-  max-width: 42rem;
+  max-width: 40rem;
   margin: 0 auto;
   padding-block: clamp(2rem, 10vh, 4.85rem);
+  /* Set here, not on :root, so 1rem stays the reader's default size. */
+  font-size: 1rem;
 }
 
 *, *::before, *::after { box-sizing: inherit; }
-h1 { margin: 0 0 1rem; font-size: 1.5rem; }
-h2 { margin: 0 0 1rem; font-size: 1.2rem; }
+h1 { margin: 0 0 1rem; font-size: 1.3125rem; font-weight: 600; line-height: 1.3; letter-spacing: -0.01em; color: var(--fg-strong); }
+h2 { margin: 0 0 1rem; font-size: 1.125rem; font-weight: 600; line-height: 1.35; color: var(--fg-strong); }
 p { margin: 0 0 1rem; }
-a { color: #39ff14; text-decoration: none; transition: transform 100ms ease; }
+strong { font-weight: 600; color: var(--fg-strong); }
+a { color: var(--accent); text-decoration: none; text-decoration-thickness: 1px; text-underline-offset: 0.2em; transition: transform 100ms ease; }
 a:hover { text-decoration: underline; }
-a:focus-visible { outline: 1px dashed #39ff14; outline-offset: 3px; }
-a:active { transform: translateY(2px); color: #111213; background: #d6d6d6; }
-.visited-link:visited { color: #d6a8ff; text-decoration: underline dotted; }
-::selection { color: #111213; background: #39ff14; }
+a:focus-visible { outline: 1px dashed var(--accent); outline-offset: 3px; }
+a:active { transform: translateY(2px); color: var(--bg); background: var(--fg); }
+.visited-link:visited { color: var(--visited); text-decoration: underline dotted; }
+::selection { color: var(--bg); background: var(--accent); }
 
 nav ul {
   display: flex;
@@ -38,12 +61,39 @@ nav ul {
   list-style: none;
 }
 
+/* ---------- Site header ---------- */
+
+/*
+ * The same name in the same place on every page: the home page's title, a link home elsewhere.
+ * On the home page the name belongs to the content below it, so it sits close; elsewhere it is
+ * site chrome, and a wider gap keeps it from reading as part of the article's own heading.
+ */
+.site-header { margin-bottom: 2.5rem; }
+.site-header--home { margin-bottom: 1.5rem; }
+
+.site-name {
+  margin: 0;
+  color: var(--fg-strong);
+  font-size: 1.125rem;
+  font-weight: 600;
+  line-height: 1.3;
+  letter-spacing: 0;
+}
+
+.site-name a { color: inherit; }
+.site-name a:hover { color: var(--accent); text-decoration: none; }
+
+.site-section { color: var(--faint); font-weight: 400; }
+.site-section span { color: var(--muted); }
+
 footer {
   margin-top: 2.25rem;
   padding-top: 0.75rem;
-  border-top: 1px dotted #55595c;
-  color: #92989b;
+  border-top: 1px dotted var(--faint);
+  color: var(--muted);
 }
+
+/* ---------- Home ---------- */
 
 #profile footer {
   display: flex;
@@ -52,17 +102,24 @@ footer {
   gap: 0.35rem 1.25rem;
 }
 
-#profile .research { margin-top: clamp(2rem, 7vw, 4rem); }
+#profile section[aria-label="About"] p {
+  line-height: 1.7;
+  text-wrap: pretty;
+}
+
+#profile .research { margin-top: clamp(2.5rem, 8vw, 4.25rem); }
 
 #profile .research h2 {
-  margin-bottom: 0.8rem;
-  font-size: 1rem;
-  letter-spacing: 0.015em;
+  margin-bottom: 0.5rem;
+  color: var(--muted);
+  font-size: 0.8125rem;
+  font-weight: 400;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
 }
 
 #profile .research-list {
   display: grid;
-  gap: 0.35rem;
   margin: 0;
   padding: 0;
   list-style: none;
@@ -70,83 +127,99 @@ footer {
 
 #profile .research-list li {
   display: grid;
-  grid-template-columns: minmax(5.5rem, 6rem) minmax(0, 1fr);
-  gap: clamp(0.65rem, 3vw, 1rem);
+  grid-template-columns: 6rem minmax(0, 1fr);
+  gap: clamp(0.65rem, 3vw, 1.25rem);
   align-items: baseline;
-  padding: 0.65rem 0;
+  padding: 0.75rem 0;
 }
 
 #profile .research-list time {
-  color: #92989b;
-  font-size: 0.75rem;
+  color: var(--muted);
+  font-size: 0.8125rem;
   font-variant-numeric: tabular-nums;
-  line-height: 1.5;
   white-space: nowrap;
 }
 
 #profile .research-title { min-width: 0; }
 
-#profile .research-links {
-  display: block;
-  margin-top: 0.2rem;
-  color: #92989b;
-  font-size: 0.75rem;
+#profile .research-title > a {
+  font-size: 1.0625rem;
+  line-height: 1.45;
+  text-wrap: pretty;
+  overflow-wrap: break-word;
 }
 
-#profile .research-list a {
-  min-width: 0;
-  line-height: 1.5;
-  text-decoration-thickness: 1px;
-  text-underline-offset: 0.2em;
-  overflow-wrap: anywhere;
+#profile .research-links {
+  display: block;
+  margin-top: 0.35rem;
+  color: var(--muted);
+  font-size: 0.8125rem;
 }
 
 #profile .research-list a:focus-visible { outline-offset: 4px; }
 
-.page-header {
-  margin-bottom: clamp(2rem, 7vw, 3.25rem);
-  font-size: 1rem;
-}
+/* ---------- Article ---------- */
 
-.research-article > header {
-  margin-bottom: clamp(2rem, 6vw, 2.75rem);
-}
+.research-article > header { margin-bottom: 2.5rem; }
 
 .research-article h1 {
-  max-width: 28ch;
-  margin: 0 0 0.85rem;
-  font-size: clamp(1.55rem, 5vw, 2rem);
-  line-height: 1.3;
-  letter-spacing: -0.045em;
+  margin: 0 0 1rem;
+  font-size: clamp(1.625rem, 5vw, 2.125rem);
+  font-weight: 500;
+  line-height: 1.16;
+  letter-spacing: -0.012em;
   text-wrap: balance;
 }
 
 .research-article > header p {
-  max-width: 58ch;
   margin: 0;
-  color: #92989b;
-  font-size: 0.95rem;
-  line-height: 1.65;
+  color: var(--muted);
+  font-size: 1rem;
+  font-style: italic;
+  line-height: 1.55;
+  text-wrap: pretty;
 }
 
-.research-article > header .article-meta {
-  margin-top: 1rem;
+/* The date sits above the title as a quiet eyebrow, as in a journal. */
+.research-article > header .article-date {
+  margin: 0 0 0.5rem;
   font-size: 0.75rem;
+  font-style: normal;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
   font-variant-numeric: tabular-nums;
 }
 
+.research-article > header .article-links {
+  margin-top: 1.1rem;
+  font-size: 0.8125rem;
+  font-style: normal;
+}
+
 .article-content {
-  font-size: 0.9rem;
-  line-height: 1.8;
-  overflow-wrap: anywhere;
+  font-size: 1.0625rem;
+  line-height: 1.7;
+  overflow-wrap: break-word;
+  text-wrap: pretty;
+}
+
+.article-content :is(h2, h3) {
+  font-weight: 600;
+  hyphens: manual;
+  text-wrap: balance;
 }
 
 .article-content h2 {
-  margin: 2.5rem 0 0.85rem;
-  font-size: 1.15rem;
+  margin: 3rem 0 0.85rem;
+  font-size: 1.3em;
+  line-height: 1.3;
+  letter-spacing: -0.005em;
+}
+
+.article-content h3 {
+  margin: 2.25rem 0 0.6rem;
+  font-size: 1.08em;
   line-height: 1.4;
-  letter-spacing: -0.025em;
-  text-wrap: balance;
 }
 
 .article-content :is(h2, h3) a {
@@ -155,64 +228,113 @@ footer {
 }
 
 .article-content :is(h2, h3) a:hover {
-  color: #39ff14;
+  color: var(--accent);
   text-decoration: underline;
-  text-underline-offset: 0.2em;
 }
 
-.article-content h3 {
-  margin: 2rem 0 0.75rem;
-  font-size: 1rem;
-  line-height: 1.45;
-}
-
-.article-content p, 
-.article-content figure, 
+.article-content p,
+.article-content figure,
 .article-content figure video,
-.article-content table  { margin: 0 0 1.15rem; }
+.article-content table { margin: 0 0 1.15em; }
 
 .article-content :is(ul, ol) {
-  margin: 0 0 1.25rem;
-  padding-left: 1.5rem;
+  margin: 0 0 1.25em;
+  padding-left: 1.4em;
 }
 
 .article-content li {
-  margin-block: 0.4rem;
-  padding-left: 0.2rem;
+  margin-block: 0.35em;
+  padding-left: 0.25em;
 }
 
-.article-content li::marker { color: #92989b; }
+.article-content li::marker { color: var(--muted); }
 
+/*
+ * Bibliography: hanging indent, slightly smaller, no bullets. Covers every list from the
+ * References heading up to the next section, so references split under subheadings match too.
+ */
+.article-content h2#references ~ ul:not(h2#references ~ h2 ~ ul) {
+  padding-left: 0;
+  font-size: 0.9375em;
+  line-height: 1.55;
+  list-style: none;
+}
+
+.article-content h2#references ~ ul:not(h2#references ~ h2 ~ ul) li {
+  margin-block: 0 0.65em;
+  padding-left: 1.5em;
+  text-indent: -1.5em;
+}
+
+/* Prose links stay quiet: body-coloured text, accent underline, full accent on hover. */
 .article-content a {
+  color: var(--fg-strong);
   text-decoration: underline;
+  text-decoration-color: color-mix(in srgb, var(--accent) 60%, transparent);
   text-decoration-thickness: 1px;
-  text-underline-offset: 0.2em;
+  text-underline-offset: 0.18em;
 }
+
+.article-content a:hover { color: var(--accent); text-decoration-color: currentColor; }
 
 .article-content .external-link:visited {
-  color: #d6a8ff;
+  text-decoration-color: color-mix(in srgb, var(--visited) 70%, transparent);
   text-decoration-style: dotted;
 }
 
 .article-content blockquote {
-  margin: 1.5rem 0;
-  padding-left: 1rem;
-  border-left: 1px dotted #92989b;
-  color: #b5b9bb;
+  margin: 1.75em 0;
+  padding-left: 1.25em;
+  border-left: 1px dotted var(--muted);
+  color: #b9bdbf;
 }
+
+.article-content blockquote p:last-child { margin-bottom: 0; }
+
+/* The opening invocation reads as an epigraph and, set between two short rules, divides the heading from the text. */
+.article-content > blockquote:first-child {
+  display: grid;
+  justify-items: center;
+  gap: 0.875rem;
+  max-width: 34em;
+  margin: 0 auto 2.5rem;
+  padding: 0;
+  border: 0;
+  color: var(--muted);
+  font-size: 0.9375rem;
+  line-height: 1.6;
+  text-align: center;
+  hyphens: manual;
+  text-wrap: balance;
+}
+
+.article-content > blockquote:first-child::before,
+.article-content > blockquote:first-child::after {
+  content: "";
+  width: 2rem;
+  border-top: 1px solid var(--faint);
+}
+
+.article-content > blockquote:first-child + :is(h2, h3) { margin-top: 0; }
 
 .article-content pre {
   max-width: 100%;
   overflow-x: auto;
   padding: 1rem;
-  background: #191b1d;
+  background: var(--surface);
+  font-size: 0.8125rem;
   line-height: 1.6;
+  hyphens: manual;
 }
 
 .article-content code {
-  font-family: inherit;
+  font-family: var(--mono);
+  font-size: 0.85em;
+  hyphens: manual;
   overflow-wrap: anywhere;
 }
+
+.article-content pre code { font-size: inherit; }
 
 .article-content img {
   display: block;
@@ -227,28 +349,66 @@ footer {
   margin-block: 1.5rem;
 }
 
-.article-content .katex-display {
+/* Math is native MathML: the browser typesets it with the system math font. */
+.article-content math {
+  font-family: var(--math);
+  font-size: 1.05em;
+  hyphens: manual;
+}
+
+.article-content .katex:has(> math[display="block"]) {
+  display: block;
   max-width: 100%;
+  margin-block: 1.25em;
   overflow-x: auto;
   overflow-y: hidden;
   padding-block: 0.25rem;
 }
 
-.article-content .katex {
-  font-size: 1.05em;
-}
+/*
+ * KaTeX lays out \tag{n} as a full-width table with 50% spacer cells, using presentational
+ * `width` attributes that MathML Core ignores; apply them in CSS so the number sits at the
+ * right margin. Table cells also default to compact style, which would shrink ∫ and Σ.
+ */
+.article-content math[display="block"] mtable[width="100%"] { width: 100%; }
+.article-content math[display="block"] mtd[width="50%"] { width: 50%; }
+.article-content math[display="block"] mtd { math-style: normal; }
 
+/* Tables are set like a journal's: horizontal rules only, small spaced capitals for header labels. */
 .article-content table {
   display: block;
   max-width: 100%;
   overflow-x: auto;
   border-collapse: collapse;
+  font-size: 0.875em;
+  line-height: 1.5;
+  font-variant-numeric: lining-nums tabular-nums;
+  hyphens: manual;
 }
 
 .article-content :is(th, td) {
-  padding: 0.45rem 0.75rem;
-  border: 1px solid #55595c;
+  padding: 0.55rem 1rem 0.55rem 0;
+  border-bottom: 1px solid var(--rule);
   text-align: left;
+  vertical-align: top;
+}
+
+.article-content th {
+  border-bottom-color: var(--faint);
+  color: var(--muted);
+  font-size: 0.8125rem;
+  font-weight: 400;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.article-content :is(th, td):last-child { padding-right: 0; }
+
+.article-content hr {
+  margin: 2.5rem 0;
+  border: 0;
+  border-top: 1px dotted var(--faint);
 }
 
 .article-page footer { margin-top: clamp(2.5rem, 8vw, 4rem); }
@@ -264,28 +424,24 @@ footer {
 @media (max-width: 480px) {
   #profile .research-list li {
     grid-template-columns: minmax(0, 1fr);
-    gap: 0.2rem;
-    padding-block: 0.75rem;
+    gap: 0.3rem;
   }
 
   #profile .research-title { grid-row: 1; }
 
-  #profile .research-list time {
-    grid-row: 2;
-    font-size: 0.7rem;
-  }
+  #profile .research-list time { grid-row: 2; }
 
   .article-navigation { gap: 0.75rem; }
 
+  /* Narrow columns leave ragged gaps; hyphenate, but only long words. */
   .article-content {
-    font-size: 0.875rem;
-    line-height: 1.75;
+    font-size: 1rem;
+    line-height: 1.65;
+    hyphens: auto;
+    hyphenate-limit-chars: 10 4 4;
   }
 
-  .article-content h2 {
-    margin-top: 2.1rem;
-    font-size: 1.08rem;
-  }
+  .article-content h2 { margin-top: 2.75rem; }
 }
 
 @media (prefers-reduced-motion: reduce) {

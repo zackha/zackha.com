@@ -273,11 +273,11 @@ This paper and its archive will be updated as new records are published.
 
 ## Appendix A. Audiovisual Archive
 
-![Black-and-white portrait of Grigori Yakovlevich Perelman.](/research/archive-on-grigori-perelman/01.png)
+![Black-and-white portrait of Grigori Yakovlevich Perelman.](/research/archive-on-grigori-perelman/01.webp){width="1280" height="849"}
 
 *Figure 1. Portrait of Grigori Yakovlevich Perelman.* Source: Heidelberg Laureate Forum, "[Grigori Yakovlevich Perelman](https://www.heidelberg-laureate-forum.org/laureate/grigori-yakovlevich-perelman/)" (accessed 8 October 2026). Information on the photographer and licence should be verified separately on the source page.
 
-![Grigori Yakovlevich Perelman outdoors in a blue beret and a dark jacket.](/research/archive-on-grigori-perelman/02.png)
+![Grigori Yakovlevich Perelman outdoors in a blue beret and a dark jacket.](/research/archive-on-grigori-perelman/02.webp){width="1280" height="852"}
 
 *Figure 2. Grigori Yakovlevich Perelman.* Photograph: Ruslan Voronoy. Source: KP-Peterburg, "[Борется с клопами и ездит на электросамокате: Куда пропал и как живет гений математики Григорий Перельман](https://www.spb.kp.ru/daily/27442/4645075/)" [Fighting bedbugs and riding an electric scooter: Where the mathematical genius Grigori Perelman went and how he lives] (2022; accessed 14 October 2026).
 
