@@ -1,0 +1,4 @@
+# The feed lives at /feed.xml; send the addresses readers commonly guess there too.
+/rss.xml /feed.xml 301
+/atom.xml /feed.xml 301
+/rss /feed.xml 301

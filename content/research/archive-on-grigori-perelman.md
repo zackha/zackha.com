@@ -11,10 +11,10 @@ keywords:
   - ethos of science
   - archive
 image:
-  src: /research/archive-on-grigori-perelman/01.png
+  src: /research/archive-on-grigori-perelman/og.jpg
   alt: Black-and-white portrait of Grigori Yakovlevich Perelman.
-  width: 1540
-  height: 1021
+  width: 1200
+  height: 630
 pdf: /research/archive-on-grigori-perelman/Bulak_2026_Leaving-the-World-While-Alive_Perelman_v1.0.pdf
 zenodo: https://zenodo.org/records/23442928
 doi: 10.5281/zenodo.23442928

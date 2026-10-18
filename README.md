@@ -21,11 +21,14 @@ date: 2026-10-06
 updated: 2026-10-06        # optional, change whenever the article changes
 type: research-note        # publication | working-paper | research-note
 keywords: [keyword]        # optional
-image:                     # optional, used for social previews
-  src: /research/a-research-title/cover.png
+image:                     # optional social preview, 1200×630 JPEG or PNG
+  src: /research/a-research-title/og.jpg
   alt: Image description.
   width: 1200
   height: 630
+pdf: /research/a-research-title/paper.pdf  # optional, also exposed to Google Scholar
+zenodo: https://zenodo.org/records/0000000  # optional
+doi: 10.5281/zenodo.0000000                 # optional
 seo:
   title: "Short Search Title"  # optional, ~60 characters
 ---
@@ -42,6 +45,10 @@ Put the article's media in `public/research/<slug>/`. Export images as WebP no w
 ```
 
 Math (`$...$`, `$$...$$`) is rendered to MathML at build time and typeset by the browser.
+
+## Sharing and search
+
+Every page has Open Graph and Twitter card tags. An article without an `image` gets a title card generated at build time (`/og/<slug>.png`, drawn by `server/utils/ogImage.ts`); the home page uses `/og/home.png`. Articles also carry Google Scholar (Highwire) tags and `ScholarlyArticle` structured data, and are listed in `/sitemap.xml` and the Atom feed at `/feed.xml` (linked as RSS in the home page footer; `/rss.xml` and `/atom.xml` redirect to it).
 
 ## Performance
 

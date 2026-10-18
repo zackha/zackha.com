@@ -1,20 +1,25 @@
 export const useHomePage = async () => {
-  const description = 'Sefa Bulak is a software engineer and interface designer focused on modern web and mobile technologies.'
-  const { buildDate, absoluteUrl, jsonLd } = useSite()
+  // Search results cut descriptions at about 155–160 characters; keep this within that.
+  const title = `${SITE_NAME} — Software Engineer & Researcher`
+  const description = 'Sefa Bulak is a software engineer and researcher. Writing software since 2016, from e-commerce and ERP integrations to mobile apps and open source in Vue.'
+  const { buildDate, absoluteUrl, jsonLd, ogImage } = useSite()
   const homeUrl = absoluteUrl('/')
+  const image = ogImage('home', SITE_NAME)
 
   useSeoMeta({
-    title: SITE_NAME,
+    title,
     description,
     ogType: 'profile',
     ogUrl: homeUrl,
     ogSiteName: SITE_NAME,
     ogLocale: 'en_US',
-    ogTitle: SITE_NAME,
+    ogTitle: title,
     ogDescription: description,
+    ogImage: image,
     profileFirstName: 'Sefa',
     profileLastName: 'Bulak',
-    twitterCard: 'summary',
+    twitterCard: 'summary_large_image',
+    twitterImageAlt: image.alt,
   })
 
   useHead({
@@ -46,9 +51,10 @@ export const useHomePage = async () => {
           '@id': absoluteUrl('/#person'),
           name: SITE_NAME,
           url: homeUrl,
-          jobTitle: 'Software Engineer and Interface Designer',
+          jobTitle: 'Software Engineer and Researcher',
           sameAs: [
             'https://github.com/zackha',
+            'https://x.com/ZHatlen',
             'https://prs.zackha.com',
           ],
         },

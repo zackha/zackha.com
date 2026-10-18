@@ -64,6 +64,8 @@ const { latestArticles, updatedDate, updatedLabel, links } = await useHomePage()
     <footer>
       <small>Last updated: <time :datetime="updatedDate">{{ updatedLabel }}</time></small>
       <small>
+        <a class="visited-link" href="/feed.xml" type="application/atom+xml" title="Follow new research in a feed reader">RSS</a>
+        ·
         <a
           class="visited-link"
           href="https://github.com/zackha/zackha.com"

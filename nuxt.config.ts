@@ -1,4 +1,13 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
+import { readdirSync, readFileSync } from 'node:fs'
+
+// Social preview cards are not linked from any page, so the crawler can't find them; list them.
+// Articles that set their own `image` in front matter don't need one.
+const cardSlugs = readdirSync('content/research')
+  .filter(file => file.endsWith('.md'))
+  .filter(file => !/^image:/m.test(readFileSync(`content/research/${file}`, 'utf8').split(/^---$/m)[1] ?? ''))
+  .map(file => file.slice(0, -3))
+
 export default defineNuxtConfig({
   compatibilityDate: '2025-07-15',
   modules: ['@nuxt/content'],
@@ -22,8 +31,15 @@ export default defineNuxtConfig({
       meta: [
         { name: 'theme-color', content: '#111213' },
         { name: 'color-scheme', content: 'dark' },
+        // Credits shared links on X to this account.
+        { name: 'twitter:site', content: '@ZHatlen' },
+        { name: 'twitter:creator', content: '@ZHatlen' },
       ],
-      link: [{ rel: 'icon', href: '/favicon.ico', sizes: 'any' }],
+      link: [
+        { rel: 'icon', href: '/favicon.ico', sizes: 'any' },
+        { rel: 'apple-touch-icon', href: '/apple-touch-icon.png' },
+        { rel: 'alternate', type: 'application/atom+xml', title: 'Sefa Bulak — Research', href: '/feed.xml' },
+      ],
     },
   },
   content: {
@@ -55,7 +71,14 @@ export default defineNuxtConfig({
       // so the generated files must match the canonical URLs (no trailing slash).
       autoSubfolderIndex: false,
       crawlLinks: true,
-      routes: ['/', '/sitemap.xml', '/robots.txt'],
+      routes: [
+        '/',
+        '/sitemap.xml',
+        '/robots.txt',
+        '/feed.xml',
+        '/og/home.png',
+        ...cardSlugs.map(slug => `/og/${slug}.png`),
+      ],
       failOnError: true,
     },
   },
