@@ -282,7 +282,7 @@ This paper and its archive will be updated as new records are published.
 *Figure 2. Grigori Yakovlevich Perelman.* Photograph: Ruslan Voronoy. Source: KP-Peterburg, "[Борется с клопами и ездит на электросамокате: Куда пропал и как живет гений математики Григорий Перельман](https://www.spb.kp.ru/daily/27442/4645075/)" [Fighting bedbugs and riding an electric scooter: Where the mathematical genius Grigori Perelman went and how he lives] (2022; accessed 14 October 2026).
 
 <figure>
-  <video controls preload="metadata" playsinline aria-label="Footage of Grigori Perelman shopping in a supermarket">
+  <video controls preload="none" playsinline width="1024" height="576" poster="/research/archive-on-grigori-perelman/03-poster.webp" aria-label="Footage of Grigori Perelman shopping in a supermarket">
     <source src="/research/archive-on-grigori-perelman/03.mp4" type="video/mp4" />
     Your browser does not support video playback. <a href="/research/archive-on-grigori-perelman/03.mp4">Download the video file.</a>
   </video>
@@ -290,7 +290,7 @@ This paper and its archive will be updated as new records are published.
 </figure>
 
 <figure>
-  <video controls preload="metadata" playsinline aria-label="Video recording of Grigori Perelman published by 78.ru">
+  <video controls preload="none" playsinline width="1920" height="1080" poster="/research/archive-on-grigori-perelman/04-poster.webp" aria-label="Video recording of Grigori Perelman published by 78.ru">
     <source src="/research/archive-on-grigori-perelman/04.mp4" type="video/mp4" />
     Your browser does not support video playback. <a href="/research/archive-on-grigori-perelman/04.mp4">Download the video file.</a>
   </video>
