@@ -16,58 +16,43 @@ const warn = (event: BeforeUnloadEvent) => event.preventDefault()
 // guest gets a copy whenever it changes, and the mixer and the shared screen follow it.
 export const useRoomHost = () => {
   const room = reactive<RoomState>({ people: [], talking: [], sharing: {} })
-  const isOpen = ref(false)
   const closedWith = ref('The room is closed.')
   const password = ref<string>()
-  const mic = useMicrophone()
-  const capture = useCapture()
   const calls = new Map<string, ReturnType<typeof createCall>>()
   let socket: ReturnType<typeof connectRoom> | undefined
   let mixer: ReturnType<typeof createMixer> | undefined
   let listening: ReturnType<typeof setInterval> | undefined
   let iceServers: IceServer[] = []
 
+  const isOpen = computed(() => room.people.length > 0)
   const find = (id: string) => room.people.find(person => person.id === id)
-  const status = computed(() => {
-    if (mic.blocked.value) return 'Your microphone is blocked. Allow it from the address bar, then press unmute.'
-    if (capture.problem.value) return capture.problem.value
-    // An open room speaks for itself: a raised hand shows in the list and the tab's title.
-    return isOpen.value ? '' : closedWith.value
-  })
+  // I am in the room like everyone else: my asks are decided right here, my voice and tab go to the
+  // desk, and a speaker's screen comes in on their call.
+  const member = useRoomMember(
+    () => room,
+    () => HOST.id,
+    request => grant(HOST.id, request),
+    (out, track) => out !== 'screen' && mixer?.feed(HOST.id, out === 'voice' ? 'voice' : 'tab', track),
+    holder => calls.get(holder)?.received('screen'),
+  )
   const title = computed(() => isOpen.value
     ? `Room (${room.people.length})${room.people.some(person => person.hand) ? ' · Hand raised' : ''}`
     : `Room host — ${SITE_NAME}`)
-  // The room's one screen: mine, or a speaker's that their call brings in.
-  const screen = computed(() => {
-    const id = room.sharing.screen
-    const call = id && calls.get(id)
-    return id === HOST.id ? capture.tracks.screen : call ? slots(call.pc).screen.receiver.track : undefined
-  })
 
   watch(room, () => {
     const copy = JSON.stringify(room)
     for (const { channel } of calls.values()) if (channel.readyState === 'open') channel.send(copy)
   }, { deep: true })
+  // A voice is heard while on stage, a tab while it is the room's one shared audio.
   watchEffect(() => room.people.forEach((person) => {
-    mixer?.allow(person.id, 'voice', person.role === 'speaker')
+    mixer?.allow(person.id, 'voice', person.role !== 'listener')
     mixer?.allow(person.id, 'tab', room.sharing.audio === person.id)
   }))
   // Every guest gets the room's screen, except whoever shares it. Passing a speaker's screen on means
   // encoding it again here, so keep its text sharp as theirs was.
-  watch(screen, (track) => {
+  watch(member.screen, (track) => {
     if (track) track.contentHint = 'detail'
-    for (const [id, call] of calls) slots(call.pc).screen.sender.replaceTrack(id === room.sharing.screen ? null : track ?? null)
-  })
-  watch(mic.track, track => mixer?.play('microphone', track))
-  // My share follows the same rule as a speaker's: if the slot is taken, it isn't heard.
-  watch(() => capture.tracks.audio, (track) => {
-    if (!claim('audio', HOST.id, !!track) && track) return capture.stop('audio')
-    mixer?.play('tab', track)
-  })
-  watch(() => capture.tracks.screen, track => claim('screen', HOST.id, !!track))
-  watch(mic.on, (on) => {
-    const me = find(HOST.id)
-    if (me) me.mic = on
+    for (const [id, call] of calls) call.send('screen', id === room.sharing.screen ? null : track)
   })
 
   const open = (typed: string) => {
@@ -86,7 +71,6 @@ export const useRoomHost = () => {
     if (message.type === 'opened') {
       iceServers = message.iceServers
       room.people = [{ ...HOST }]
-      isOpen.value = true
       listening = setInterval(listen, 150)
       addEventListener('beforeunload', warn)
       localStorage.setItem(SAVED, password.value!)
@@ -97,42 +81,29 @@ export const useRoomHost = () => {
   }
 
   const welcome = async ({ id, name, sdp }: Extract<FromRoom, { type: 'offer' }>) => {
-    const call = createCall(iceServers)
+    // Their voice and shared tab go to the desk; their screen, if they share one, is passed on.
+    const call = createCall(iceServers, (slot, track) => slot !== 'screen' && mixer?.feed(id, slot === 'voice' ? 'voice' : 'tab', track))
     calls.set(id, call)
     room.people.push({ id, name, role: 'listener', mic: false, hand: false })
-    const mix = mixer!.add(id)
-    call.pc.ontrack = ({ track, transceiver }) => {
-      const { voice, audio } = slots(call.pc)
-      if (transceiver === voice || transceiver === audio) mixer?.hear(id, track, transceiver === voice ? 'voice' : 'tab')
-    }
     call.channel.onopen = () => call.channel.send(JSON.stringify(room))
     call.channel.onmessage = event => grant(id, JSON.parse(event.data))
     call.channel.onclose = () => drop(id)
-    await call.pc.setRemoteDescription({ type: 'offer', sdp })
-    const { voice, audio, screen: shared } = slots(call.pc)
-    voice.direction = shared.direction = 'sendrecv'
-    audio.direction = 'recvonly'
-    await voice.sender.replaceTrack(mix)
-    await shared.sender.replaceTrack(screen.value ?? null)
-    socket?.send({ type: 'answer', id, sdp: await completeDescription(call.pc) })
-    await limitScreen(shared)
+    socket?.send({ type: 'answer', id, sdp: await call.answer(sdp, { voice: mixer!.add(id), screen: member.screen.value }) })
   }
 
-  // A guest may raise a hand while listening; on stage, report their mic and share when free.
-  const grant = (id: string, request: GuestRequest) => {
+  // A listener may raise a hand; on stage, the mic and a share are theirs to report, when free.
+  const grant = (id: string, request: Ask) => {
     const person = find(id)
     if (person?.role === 'listener' && 'hand' in request) person.hand = request.hand === true
-    if (person?.role !== 'speaker') return
+    if (!person || person.role === 'listener') return
     if ('mic' in request) person.mic = request.mic === true
     for (const kind of ['audio', 'screen'] as const) if (kind in request) claim(kind, id, request[kind] === true)
   }
 
-  // One shared audio and one shared screen: the first to ask holds it until they let go. Says
-  // whether they hold it now.
+  // One shared audio and one shared screen: the first to ask holds it until they let go.
   const claim = (kind: keyof Sharing, id: string, on: boolean) => {
     if (on && !room.sharing[kind]) room.sharing[kind] = id
     if (!on && room.sharing[kind] === id) delete room.sharing[kind]
-    return room.sharing[kind] === id
   }
 
   const unshare = (id: string) => {
@@ -167,14 +138,12 @@ export const useRoomHost = () => {
   const close = (message = 'The room is closed.') => {
     socket?.close()
     for (const id of calls.keys()) drop(id)
-    capture.reset()
+    member.reset()
     mixer?.close()
-    mic.stop()
     clearInterval(listening)
     removeEventListener('beforeunload', warn)
     socket = mixer = undefined
     Object.assign(room, { people: [], talking: [], sharing: {} })
-    isOpen.value = false
     closedWith.value = message
   }
 
@@ -185,19 +154,16 @@ export const useRoomHost = () => {
   onScopeDispose(() => close())
   return {
     room,
+    member,
     isOpen,
-    status,
+    // While open, the room's news is the member's (see RoomInside); closed, it is why.
+    status: closedWith,
     title,
     password,
-    capture,
-    // The room's screen, a speaker's or mine; mine comes straight from my capture, at no cost.
-    screen: computed(() => screen.value && new MediaStream([screen.value])),
-    micOn: mic.on,
     open,
     close,
     remove,
     unshare,
-    toggleMic: mic.toggle,
     invite: (id: string) => setRole(id, 'speaker'),
     demote: (id: string) => setRole(id, 'listener'),
   }

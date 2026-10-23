@@ -1,6 +1,6 @@
 <script setup lang="ts">
 // Where I open the room. Linked from nowhere; the password keeps everyone else out.
-const { room, isOpen, status, title, password, capture, screen, micOn, open, close, toggleMic, invite, demote, unshare, remove } = useRoomHost()
+const { room, member, isOpen, status, title, password, open, close, invite, demote, unshare, remove } = useRoomHost()
 useSeoMeta({ title, robots: 'noindex, nofollow' })
 
 // A person's name opens their actions in the browser's own dialog; the button pressed to close it
@@ -12,15 +12,15 @@ const choose = (person: Person) => {
   menu.value!.returnValue = ''
   menu.value!.showModal()
 }
-const act = () => {
+const decide = () => {
   const person = chosen.value
   chosen.value = undefined
   if (!person) return
-  const action = menu.value!.returnValue
-  if (action === 'invite') invite(person.id)
-  if (action === 'listen') demote(person.id)
-  if (action === 'unshare') unshare(person.id)
-  if (action === 'remove' && confirm(`Remove ${person.name} from the room?`)) remove(person.id)
+  const answer = menu.value!.returnValue
+  if (answer === 'invite') invite(person.id)
+  if (answer === 'listen') demote(person.id)
+  if (answer === 'unshare') unshare(person.id)
+  if (answer === 'remove' && confirm(`Remove ${person.name} from the room?`)) remove(person.id)
 }
 // Someone who leaves, or a room that closes, takes their dialog with them.
 watch(() => chosen.value && !room.people.includes(chosen.value), gone => gone && menu.value?.close())
@@ -37,21 +37,9 @@ watch(() => chosen.value && !room.people.includes(chosen.value), gone => gone &&
       </form>
     </template>
 
-    <!-- The people come first, the commands under them, then any news and the shared screen. -->
-    <template v-else>
-      <RoomPeople :people="room.people" :talking="room.talking" @pick="choose" />
-      <div class="controls">
-        <span>
-          <button type="button" @click="toggleMic">{{ micOn ? 'mute' : 'unmute' }}</button>
-          <RoomShare :capture :sharing="room.sharing" me="host" />
-        </span>
-        <button type="button" class="out" @click="close()">close the room</button>
-      </div>
-      <p role="status">{{ status }}</p>
-      <video v-if="screen" :srcObject="screen" autoplay muted playsinline controls />
-    </template>
+    <RoomInside v-else :room :member out="close the room" @pick="choose" @out="close()" />
 
-    <dialog ref="menu" aria-labelledby="chosen" @close="act">
+    <dialog ref="menu" aria-labelledby="chosen" @close="decide">
       <form v-if="chosen" method="dialog">
         <p id="chosen">{{ chosen.name }} is {{ chosen.role === 'listener' ? 'listening' : 'speaking' }}.</p>
         <button v-if="chosen.role === 'listener'" value="invite">Invite to speak</button>

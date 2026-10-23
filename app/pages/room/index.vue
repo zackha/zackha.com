@@ -4,7 +4,7 @@ useSeoMeta({
   description: 'A voice room that is open while I work. Listen in, and raise your hand to talk.',
 })
 
-const { phase, status, room, me, action, capture, screen, join, act, leave } = useRoomGuest()
+const { phase, status, room, member, me, join, leave } = useRoomGuest()
 </script>
 
 <template>
@@ -25,17 +25,6 @@ const { phase, status, room, me, action, capture, screen, join, act, leave } = u
       <p><small>You'll join as a listener. Raise your hand to talk.</small></p>
     </form>
 
-    <template v-if="room && me">
-      <RoomPeople :people="room.people" :talking="room.talking" />
-      <div class="controls">
-        <span>
-          <button type="button" @click="act">{{ action }}</button>
-          <RoomShare v-if="me.role === 'speaker'" :capture :sharing="room.sharing" :me="me.id" />
-        </span>
-        <button type="button" class="out" @click="leave">leave</button>
-      </div>
-      <p role="status">{{ status }}</p>
-      <video v-if="screen" :srcObject="screen" autoplay muted playsinline controls />
-    </template>
+    <RoomInside v-if="room && me" :room :member out="leave" @out="leave" />
   </main>
 </template>

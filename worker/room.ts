@@ -145,19 +145,13 @@ export default {
         else block.setAttribute('hidden', '')
       },
     })
-    // The visitor page also says it in words, and hands the door to its script.
+    // The visitor page also says it in words, and leaves the door on that line for its script.
     if (pathname === '/room') {
-      rewriter
-        .on('[role="status"]', {
-          element: (status) => {
-            status.setInnerContent(doorStatus(door))
-          },
-        })
-        .on('head', {
-          element: (head) => {
-            head.append(`<meta name="room-door" content='${JSON.stringify(door)}'>`, { html: true })
-          },
-        })
+      rewriter.on('[role="status"]', {
+        element: (status) => {
+          status.setInnerContent(doorStatus(door)).setAttribute('data-door', JSON.stringify(door))
+        },
+      })
     }
     const filled = rewriter.transform(page)
     const response = new Response(filled.body, filled)

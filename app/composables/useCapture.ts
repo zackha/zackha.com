@@ -16,28 +16,28 @@ const requests: Record<Kind, DisplayMediaStreamOptions & Record<string, unknown>
   screen: { video: { frameRate: { max: 15 } }, audio: MUSIC, systemAudio: 'include' },
 }
 
-// A tab's audio or a screen, picked in the browser's share dialog. Browsers that can't share, as
-// on most phones, don't get the buttons at all.
+// A tab's audio or a screen, picked in the browser's share dialog. One capture at a time, so the
+// browser shows one "Sharing" bar: a new one replaces the last. A screen's sound is the room's audio;
+// it can be set aside while the screen goes on, and goes on alone when the screen stops. Browsers
+// that can't share, as on most phones, don't get the commands at all.
 export const useCapture = () => {
   const canShare = import.meta.client && typeof navigator.mediaDevices?.getDisplayMedia === 'function'
-  const tracks = shallowReactive<Partial<Record<Kind, MediaStreamTrack>>>({})
+  const held = shallowReactive<Partial<Record<Kind, MediaStreamTrack>>>({})
+  const aside = ref(false)
   const problem = ref<string>()
-  // The sound captured with my screen. One capture means one "Sharing" bar in the browser, so this
-  // sound is set aside rather than stopped while I'm not sending it, and leaves with the screen.
-  let paired: MediaStreamTrack | undefined
+  // What goes to the room.
+  const tracks = reactive({
+    audio: computed(() => aside.value ? undefined : held.audio),
+    screen: computed(() => held.screen),
+  })
 
-  const keep = (kind: Kind, track: MediaStreamTrack) => {
-    track.contentHint = kind === 'audio' ? 'music' : 'detail'
-    track.onended = () => stop(kind)
-    tracks[kind] = track
+  const drop = (kind: Kind) => {
+    held[kind]?.stop()
+    delete held[kind]
   }
 
-  const share = async (requested: Kind) => {
-    problem.value = undefined
-    // During a screen share, sound comes from that capture: the one already there, or a new capture
-    // of the screen with its sound, which replaces the old one.
-    if (requested === 'audio' && tracks.screen && paired?.readyState === 'live') return keep('audio', paired)
-    const kind = requested === 'audio' && tracks.screen ? 'screen' : requested
+  // Asks the browser for a new capture. Says whether it came with sound; nothing if closed.
+  const capture = async (kind: Kind) => {
     const stream = await navigator.mediaDevices.getDisplayMedia(requests[kind]).catch((error: Error) => {
       // Closing the dialog is a choice, not a problem.
       if (error.name !== 'NotAllowedError') problem.value = 'This browser can\'t share a screen.'
@@ -45,35 +45,36 @@ export const useCapture = () => {
     if (!stream) return
     const [video] = stream.getVideoTracks()
     const [audio] = stream.getAudioTracks()
+    drop('audio')
+    drop('screen')
+    aside.value = false
     // The dialog always captures a picture; for audio only the sound is kept.
     if (kind === 'audio') video?.stop()
-    else if (video) {
-      // One share, not two: a new screen replaces my old one and any audio I was sharing.
-      stop('screen')
-      stop('audio')
-      keep('screen', video)
-      paired = audio
-    }
-    if (audio) keep('audio', audio)
-    else if (requested === 'audio') problem.value = 'No sound came with that share. On a computer, share a browser tab with "Also share tab audio" on.'
+    else if (video) held.screen = Object.assign(video, { contentHint: 'detail', onended: () => stop('screen') })
+    if (audio) held.audio = Object.assign(audio, { contentHint: 'music', onended: () => drop('audio') })
+    return !!audio
+  }
+
+  const share = async (kind: Kind) => {
+    problem.value = undefined
+    // A screen's sound set aside comes back without a dialog.
+    if (kind === 'audio' && held.audio) return void (aside.value = false)
+    // During a screen share, sound comes from capturing the screen again, with its sound this time.
+    const sound = await capture(kind === 'audio' && held.screen ? 'screen' : kind)
+    if (sound === false && kind === 'audio') problem.value = 'No sound came with that share. On a computer, share a browser tab with "Also share tab audio" on.'
   }
 
   const stop = (kind: Kind) => {
-    // My screen's own sound is only set aside while the screen goes on, so it can come back.
-    if (kind === 'audio' && tracks.audio === paired && tracks.screen) return void (tracks.audio = undefined)
-    // Without the screen, its sound goes on as an audio share if I'm sending it; set aside, it ends.
-    if (kind === 'screen') {
-      if (tracks.audio !== paired) paired?.stop()
-      paired = undefined
-    }
-    tracks[kind]?.stop()
-    tracks[kind] = undefined
+    if (kind === 'audio' && held.screen) return void (aside.value = true)
+    if (kind === 'screen' && aside.value) drop('audio')
+    drop(kind)
+    aside.value = false
   }
 
   // Leaving the room ends every share and forgets any problem.
   const reset = () => {
-    stop('audio')
     stop('screen')
+    stop('audio')
     problem.value = undefined
   }
 

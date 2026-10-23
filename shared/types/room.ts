@@ -25,8 +25,8 @@ export interface Door {
   people: number
 }
 
-// The only things a guest can ask of the host.
-export type GuestRequest = Partial<Pick<Person, 'hand' | 'mic'> & Record<keyof Sharing, boolean>>
+// The only things anyone in the room can ask for: a hand while listening, the mic and a share on stage.
+export type Ask = Partial<Pick<Person, 'hand' | 'mic'> & Record<keyof Sharing, boolean>>
 
 // What `RTCPeerConnection` takes, spelled out because the Worker has no DOM types.
 export interface IceServer {

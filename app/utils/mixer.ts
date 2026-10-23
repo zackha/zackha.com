@@ -1,79 +1,72 @@
-// The host's sound desk. Everyone has two inputs, a voice and a shared tab's audio, each silent until
-// allowed: a voice while on stage, a tab while it is the room's one shared audio. Each guest hears
-// every input but their own; I hear the guests' inputs, never mine.
+// The host's sound desk. Everyone in the room, me included, has a seat with two inputs, a voice and a
+// shared tab's audio, each silent until allowed: a voice while on stage, a tab while it is the room's
+// one shared audio. Every input meets on one bus, and each seat hears the bus with its own inputs
+// mixed back in upside down. The graph runs in lockstep, so those cancel exactly: nobody hears
+// themself, and the desk needs one connection per person instead of one per pair.
+type Input = 'voice' | 'tab'
+
 export const createMixer = (hostId: string) => {
   const audio = new AudioContext()
-  const inputs = () => {
+  const bus = audio.createGain()
+  const seats = new Map<string, ReturnType<typeof seat>>()
+  const seat = (out: AudioNode) => {
     const voice = audio.createGain()
     const tab = audio.createGain()
+    const self = audio.createGain()
     const meter = audio.createAnalyser()
+    voice.gain.value = tab.gain.value = 0
+    self.gain.value = -1
+    for (const input of [voice, tab]) {
+      input.connect(bus)
+      input.connect(self)
+    }
+    bus.connect(out)
+    self.connect(out)
     // Only a voice counts as talking; music shouldn't keep a name in bold.
     voice.connect(meter)
-    return { voice, tab, meter, sinks: [] as HTMLAudioElement[] }
+    return { voice, tab, self, meter, out, sources: {} as Partial<Record<Input, AudioNode>> }
   }
-  const me = inputs()
-  const guests = new Map<string, ReturnType<typeof inputs> & { mix: MediaStreamAudioDestinationNode }>()
-  const sources: Partial<Record<'microphone' | 'tab', MediaStreamAudioSourceNode>> = {}
-  const samples = new Float32Array(me.meter.fftSize)
+  // I hear the room through my speakers.
+  seats.set(hostId, seat(audio.destination))
+  const samples = new Float32Array(2048)
   const loud = (meter: AnalyserNode) => {
     meter.getFloatTimeDomainData(samples)
     return samples.some(sample => Math.abs(sample) > 0.02)
   }
-  const wire = (from: ReturnType<typeof inputs>, to: AudioNode, on: boolean) => {
-    for (const node of [from.voice, from.tab]) on ? node.connect(to) : node.disconnect(to)
-  }
 
   return {
-    // A new guest, silent until allowed. Returns what they will hear.
+    // A guest's seat. Returns what they will hear.
     add: (id: string) => {
-      const guest = { ...inputs(), mix: audio.createMediaStreamDestination() }
-      guest.voice.gain.value = guest.tab.gain.value = 0
-      wire(guest, audio.destination, true)
-      wire(me, guest.mix, true)
-      for (const other of guests.values()) {
-        wire(other, guest.mix, true)
-        wire(guest, other.mix, true)
-      }
-      guests.set(id, guest)
-      const [track] = guest.mix.stream.getAudioTracks()
+      const mix = audio.createMediaStreamDestination()
+      seats.set(id, seat(mix))
+      const [track] = mix.stream.getAudioTracks()
       track!.contentHint = 'music'
       return track!
     },
-    hear: (id: string, track: MediaStreamTrack, input: 'voice' | 'tab') => {
-      const guest = guests.get(id)
-      if (!guest) return
+    // What comes into a seat: a guest's voice or tab from their call, my microphone or tab.
+    feed: (id: string, input: Input, track?: MediaStreamTrack) => {
+      const place = seats.get(id)
+      if (!place) return
+      place.sources[input]?.disconnect()
+      if (!track) return void delete place.sources[input]
       const stream = new MediaStream([track])
       // Chrome feeds a call's audio to Web Audio only while a media element is playing it too.
-      const sink = Object.assign(new Audio(), { srcObject: stream, muted: true })
-      sink.play().catch(() => {})
-      guest.sinks.push(sink)
-      audio.createMediaStreamSource(stream).connect(guest[input])
+      Object.assign(new Audio(), { srcObject: stream, muted: true }).play().catch(() => {})
+      place.sources[input] = audio.createMediaStreamSource(stream)
+      place.sources[input].connect(place[input])
     },
-    allow: (id: string, input: 'voice' | 'tab', on: boolean) => {
-      const guest = guests.get(id)
-      if (guest) guest[input].gain.value = on ? 1 : 0
+    allow: (id: string, input: Input, on: boolean) => {
+      const place = seats.get(id)
+      if (place) place[input].gain.value = on ? 1 : 0
     },
     remove: (id: string) => {
-      const guest = guests.get(id)
-      if (!guest) return
-      guests.delete(id)
-      guest.voice.disconnect()
-      guest.tab.disconnect()
-      for (const sink of guest.sinks) sink.pause()
-      wire(me, guest.mix, false)
-      for (const other of guests.values()) wire(other, guest.mix, false)
-    },
-    // My own microphone and shared tab.
-    play: (input: 'microphone' | 'tab', track?: MediaStreamTrack) => {
-      sources[input]?.disconnect()
-      sources[input] = track && audio.createMediaStreamSource(new MediaStream([track]))
-      sources[input]?.connect(input === 'microphone' ? me.voice : me.tab)
+      const place = seats.get(id)
+      seats.delete(id)
+      for (const node of [place?.voice, place?.tab, place?.self]) node?.disconnect()
+      if (place) bus.disconnect(place.out)
     },
     // Who can be heard right now.
-    talking: () => [
-      ...loud(me.meter) ? [hostId] : [],
-      ...[...guests].filter(([, guest]) => loud(guest.meter)).map(([id]) => id),
-    ],
+    talking: () => [...seats].filter(([, place]) => loud(place.meter)).map(([id]) => id),
     close: () => audio.close(),
   }
 }
