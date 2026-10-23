@@ -1,8 +1,13 @@
 <script setup lang="ts">
-// Everyone in the room, as two plain lists. Whoever can be heard right now is in bold; the host's
-// page puts its controls next to each name through the slot.
-const { people, talking, sharing, me } = defineProps<{ people: Person[], talking: string[], sharing: Sharing, me?: string }>()
-defineSlots<{ default?: (props: { person: Person }) => unknown }>()
+// Everyone in the room, as two plain lists. Whoever can be heard right now is in bold. With `@pick`
+// (the host's page), everyone else's name is a button that picks that person.
+const { people, talking, sharing, me, onPick } = defineProps<{
+  people: Person[]
+  talking: string[]
+  sharing: Sharing
+  me?: string
+  onPick?: (person: Person) => void
+}>()
 
 const groups = computed(() => ({
   Speaking: people.filter(person => person.role !== 'listener'),
@@ -26,9 +31,11 @@ const notes = (person: Person) => [
       <h2>{{ heading }}</h2>
       <ul>
         <li v-for="person in group" :key="person.id">
-          <component :is="talking.includes(person.id) ? 'strong' : 'span'">{{ person.name }}</component>
+          <component :is="talking.includes(person.id) ? 'strong' : 'span'">
+            <button v-if="onPick && person.id !== me" type="button" @click="onPick(person)">{{ person.name }}</button>
+            <template v-else>{{ person.name }}</template>
+          </component>
           <template v-if="notes(person)"> ({{ notes(person) }})</template>
-          {{ ' ' }}<slot :person />
         </li>
       </ul>
     </template>

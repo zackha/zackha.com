@@ -34,9 +34,8 @@ export const useRoomGuest = () => {
     if (capture.problem.value) return capture.problem.value
     if (notice.value) return notice.value
     if (phase.value === 'closed' || phase.value === 'door') return doorStatus(door.value ?? CLOSED_DOOR)
-    if (!me.value) return 'Connecting to Sefa.'
-    if (me.value.role === 'listener') return me.value.hand ? 'Your hand is raised. Sefa can see it.' : 'You\'re listening.'
-    return mic.on.value ? 'You\'re speaking. Your mic is on.' : 'Sefa invited you to speak. Your mic is off.'
+    // In the room the lists say who is where; the line is only for news.
+    return me.value ? '' : 'Connecting to Sefa.'
   })
   const action = computed(() => me.value?.role === 'listener'
     ? me.value.hand ? 'Lower hand' : 'Raise hand'
@@ -142,7 +141,6 @@ export const useRoomGuest = () => {
     capture,
     // Someone else's screen, to watch; my own I can already see.
     screen: computed(() => room.value?.sharing.screen && room.value.sharing.screen !== myId.value ? screen.value : undefined),
-    sharing: computed(() => room.value ? sharingSentence(room.value, myId.value) : ''),
     join,
     act,
     leave,

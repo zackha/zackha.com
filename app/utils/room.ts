@@ -65,13 +65,3 @@ export const limitScreen = async ({ sender }: RTCRtpTransceiver) => {
   for (const encoding of parameters.encodings) encoding.maxBitrate = 1_000_000
   await sender.setParameters(parameters)
 }
-
-// "You're sharing your screen and audio." "ayse is sharing a screen." Or nothing.
-export const sharingSentence = ({ people, sharing }: RoomState, me?: string) => {
-  const sharers = [...new Set([sharing.screen, sharing.audio])].filter(id => id !== undefined)
-  return sharers.map((id) => {
-    const what = [sharing.screen === id && (id === me ? 'your screen' : 'a screen'), sharing.audio === id && 'audio']
-    const who = id === me ? 'You\'re' : `${people.find(person => person.id === id)?.name} is`
-    return `${who} sharing ${what.filter(Boolean).join(' and ')}.`
-  }).join(' ')
-}

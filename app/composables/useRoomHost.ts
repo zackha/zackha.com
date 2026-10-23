@@ -28,17 +28,14 @@ export const useRoomHost = () => {
   let iceServers: IceServer[] = []
 
   const find = (id: string) => room.people.find(person => person.id === id)
-  const hands = computed(() => room.people.filter(person => person.hand))
   const status = computed(() => {
     if (mic.blocked.value) return 'Your microphone is blocked. Allow it from the address bar, then press Turn mic on.'
     if (capture.problem.value) return capture.problem.value
-    if (!isOpen.value) return closedWith.value
-    if (room.people.length === 1) return 'The room is open. Nobody else is here yet.'
-    if (hands.value.length) return `The room is open. ${hands.value.map(person => person.name).join(', ')} raised a hand.`
-    return 'The room is open.'
+    // An open room speaks for itself: a raised hand shows in the list and the tab's title.
+    return isOpen.value ? '' : closedWith.value
   })
   const title = computed(() => isOpen.value
-    ? `Room (${room.people.length})${hands.value.length ? ' · Hand raised' : ''}`
+    ? `Room (${room.people.length})${room.people.some(person => person.hand) ? ' · Hand raised' : ''}`
     : `Room host — ${SITE_NAME}`)
   // The room's one screen: mine, or a speaker's that their call brings in.
   const screen = computed(() => {
@@ -195,7 +192,6 @@ export const useRoomHost = () => {
     capture,
     // A speaker's screen, to watch; my own I can already see.
     screen: computed(() => room.sharing.screen !== HOST.id && screen.value ? new MediaStream([screen.value]) : undefined),
-    sharing: computed(() => sharingSentence(room, HOST.id)),
     micOn: mic.on,
     open,
     close,
