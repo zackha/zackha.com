@@ -15,7 +15,6 @@ const act = (person: Person, menu: HTMLSelectElement) => {
 
 <template>
   <main>
-    <h1>Room</h1>
     <p role="status">{{ status }}</p>
 
     <form v-if="!isOpen" @submit.prevent="open(($event.target as HTMLFormElement).password.value)">

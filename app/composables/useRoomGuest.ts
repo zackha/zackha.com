@@ -1,10 +1,10 @@
-type Phase = 'closed' | 'door' | 'joining' | 'inside'
+type Phase = 'closed' | 'door' | 'call'
 
 const UNREACHABLE = 'Couldn\'t reach Sefa. Your network may block direct calls. A different network, like your phone\'s, usually works.'
 
 // Where a guest lands when the Worker closes their socket, and what they read there.
 const endings: Record<number, [Phase, string]> = {
-  [CloseCode.closed]: ['closed', 'Sefa isn\'t here right now.'],
+  [CloseCode.closed]: ['closed', doorStatus(CLOSED_DOOR)],
   [CloseCode.gone]: ['closed', 'Sefa left, so the room closed. Thanks for stopping by.'],
   [CloseCode.removed]: ['closed', 'You were removed from the room. You can come back the next time it opens.'],
   [CloseCode.full]: ['door', `The room is full. ${ROOM_CAPACITY} people are inside. Try again in a few minutes.`],
@@ -13,8 +13,10 @@ const endings: Record<number, [Phase, string]> = {
 // The room, as a guest. The host's browser holds the room and sends a copy whenever it changes;
 // this side only shows that copy and asks for two things: a raised hand and an open mic.
 export const useRoomGuest = () => {
-  const { data: door, status: knock, refresh } = useFetch<Door>(ROOM_PATH, { server: false })
-  const phase = ref<Phase>()
+  // Read from the page, not fetched, so the first render matches what the Worker sent.
+  const door = ref(import.meta.client ? doorInPage() : undefined)
+  const refresh = async () => door.value = await $fetch<Door>(ROOM_PATH).catch(() => undefined)
+  const phase = ref<Phase>('closed')
   const notice = ref<string>()
   const room = shallowRef<RoomState>()
   const myId = ref<string>()
@@ -28,9 +30,7 @@ export const useRoomGuest = () => {
   const status = computed(() => {
     if (mic.blocked.value) return 'Your microphone is blocked. Allow it from the address bar, then press Turn mic on.'
     if (notice.value) return notice.value
-    if (!phase.value) return ''
-    if (phase.value === 'closed') return 'Sefa isn\'t here right now.'
-    if (phase.value === 'door') return `Sefa is here. ${door.value!.people > 1 ? `${door.value!.people} people are inside.` : 'Nobody else is inside yet.'}`
+    if (phase.value === 'closed' || phase.value === 'door') return doorStatus(door.value ?? CLOSED_DOOR)
     if (!me.value) return 'Connecting to Sefa.'
     if (me.value.role === 'listener') return me.value.hand ? 'Your hand is raised. Sefa can see it.' : 'You\'re listening.'
     return mic.on.value ? 'You\'re speaking. Your mic is on.' : 'Sefa invited you to speak. Your mic is off.'
@@ -39,10 +39,8 @@ export const useRoomGuest = () => {
     ? me.value.hand ? 'Lower hand' : 'Raise hand'
     : mic.on.value ? 'Turn mic off' : 'Turn mic on')
 
-  // A door that can't be reached reads as closed.
-  watch(knock, (value) => {
-    if (value === 'success' || value === 'error') phase.value = door.value?.open ? 'door' : 'closed'
-  })
+  // A door that can't be read reads as closed.
+  watch(door, value => phase.value = value?.open ? 'door' : 'closed', { immediate: true })
   watch(mic.track, track => call?.pc.getSenders()[0]?.replaceTrack(track ?? null))
   watch(() => me.value?.role, (role, before) => {
     if (role === 'listener' && before === 'speaker') {
@@ -54,7 +52,7 @@ export const useRoomGuest = () => {
 
   const join = async (name: string) => {
     notice.value = undefined
-    phase.value = 'joining'
+    phase.value = 'call'
     call = createCall()
     const { pc, channel } = call
     pc.addTransceiver('audio', { direction: 'sendrecv' })
@@ -64,10 +62,7 @@ export const useRoomGuest = () => {
     speaker.play().catch(() => {})
     pc.ontrack = ({ track }) => sound.addTrack(track)
     pc.onconnectionstatechange = () => pc.connectionState === 'failed' && end('door', UNREACHABLE)
-    channel.onmessage = (event) => {
-      room.value = JSON.parse(event.data)
-      phase.value = 'inside'
-    }
+    channel.onmessage = event => room.value = JSON.parse(event.data)
     socket = connectRoom({ type: 'offer', name, sdp: await completeDescription(pc) }, (message) => {
       if (message.type !== 'answer') return
       myId.value = message.id
@@ -100,9 +95,11 @@ export const useRoomGuest = () => {
     notice.value = message
   }
 
+  // I am still in the room, so the door is open; asking again only updates the count.
   const leave = () => {
     hangUp()
     notice.value = undefined
+    phase.value = 'door'
     refresh()
   }
 

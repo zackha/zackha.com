@@ -2,7 +2,8 @@
 const route = useRoute()
 const isHome = computed(() => route.path === '/')
 // Tells a reader who lands deep in the site which part of it they are in.
-const section = computed(() => route.path.startsWith('/research/') ? 'Research' : undefined)
+const sections: Record<string, string> = { research: 'Research', room: 'Room' }
+const section = computed(() => sections[route.path.split('/')[1]!])
 </script>
 
 <template>

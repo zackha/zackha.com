@@ -23,6 +23,12 @@ export const connectRoom = (first: ToRoom, onMessage: (message: FromRoom) => voi
   }
 }
 
+// The door as the Worker wrote it into this page (worker/room.ts). Absent under `nuxt dev`.
+export const doorInPage = (): Door | undefined => {
+  const content = document.querySelector<HTMLMetaElement>('meta[name="room-door"]')?.content
+  return content ? JSON.parse(content) : undefined
+}
+
 // One call between a guest's browser and mine: an audio slot each way, and a data channel for the
 // room. Both ends open the channel with the same id, so it needs no negotiation of its own.
 export const createCall = () => {

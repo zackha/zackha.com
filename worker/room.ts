@@ -1,6 +1,6 @@
 import { DurableObject } from 'cloudflare:workers'
 import type { Door, FromRoom } from '../shared/types/room'
-import { CloseCode, ROOM_CAPACITY, ROOM_PATH, cleanName } from '../shared/utils/room'
+import { CLOSED_DOOR, CloseCode, ROOM_CAPACITY, ROOM_PATH, cleanName, doorStatus } from '../shared/utils/room'
 
 // Kept on the socket itself, so it survives the object hibernating between messages.
 type Seat = { role: 'host' } | { role: 'guest', id: string } | { role: 'replaced' }
@@ -66,7 +66,11 @@ export class Room extends DurableObject<Env> {
     if (message.type === 'remove') guest?.close(CloseCode.removed)
   }
 
-  private door = (): Door => this.host() ? { open: true, people: this.guests().length + 1 } : { open: false, people: 0 }
+  // Called by the Worker below too, to fill in the pages.
+  door(): Door {
+    return this.host() ? { open: true, people: this.guests().length + 1 } : CLOSED_DOOR
+  }
+
   private host = () => this.ctx.getWebSockets().find(ws => seatOf(ws)?.role === 'host')
   private guests = () => this.ctx.getWebSockets().filter(ws => seatOf(ws)?.role === 'guest')
   private sendOut = (code: number) => this.guests().forEach(ws => ws.close(code))
@@ -84,7 +88,41 @@ const parse = (data: string | ArrayBuffer): Record<string, unknown> => {
 }
 
 export default {
-  fetch: (request, env) => new URL(request.url).pathname === ROOM_PATH
-    ? env.ROOM.getByName('room').fetch(request)
-    : env.ASSETS.fetch(request),
+  fetch: async (request, env) => {
+    const { pathname } = new URL(request.url)
+    const room = env.ROOM.getByName('room')
+    if (pathname === ROOM_PATH) return room.fetch(request)
+    if (pathname !== '/room' && pathname !== '/') return env.ASSETS.fetch(request)
+
+    // The visitor page and the home page's Live link are static, so fill in whether I am here on
+    // their way out: they are right on first paint and never change in front of the reader. A bare
+    // URL asks for the whole page, never a 304 that would bring back an old answer.
+    const [page, door] = await Promise.all([env.ASSETS.fetch(request.url), room.door()])
+    const shown = door.open ? 'open' : 'closed'
+    const rewriter = new HTMLRewriter().on('[data-when]', {
+      element: (block) => {
+        if (block.getAttribute('data-when') === shown) block.removeAttribute('hidden')
+        else block.setAttribute('hidden', '')
+      },
+    })
+    // The visitor page also says it in words, and hands the door to its script.
+    if (pathname === '/room') {
+      rewriter
+        .on('[role="status"]', {
+          element: (status) => {
+            status.setInnerContent(doorStatus(door))
+          },
+        })
+        .on('head', {
+          element: (head) => {
+            head.append(`<meta name="room-door" content='${JSON.stringify(door)}'>`, { html: true })
+          },
+        })
+    }
+    const filled = rewriter.transform(page)
+    const response = new Response(filled.body, filled)
+    response.headers.set('Cache-Control', 'no-store')
+    response.headers.delete('ETag')
+    return response
+  },
 } satisfies ExportedHandler<Env>

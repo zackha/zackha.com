@@ -64,6 +64,8 @@ const { latestArticles, updatedDate, updatedLabel, links } = await useHomePage()
     <footer>
       <small>Last updated: <time :datetime="updatedDate">{{ updatedLabel }}</time></small>
       <small>
+        <!-- Shown by the Worker only while I am in the room (worker/room.ts). -->
+        <span data-when="open" hidden><a class="visited-link" href="/room" title="I'm in the room now. Come talk.">Live</a> · </span>
         <a class="visited-link" href="/feed.xml" type="application/atom+xml" title="Follow new research in a feed reader">RSS</a>
         ·
         <a

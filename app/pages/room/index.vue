@@ -9,15 +9,15 @@ const { phase, status, room, me, action, join, act, leave } = useRoomGuest()
 
 <template>
   <main>
-    <h1>Room</h1>
     <p role="status">{{ status }}</p>
 
-    <p v-if="phase === 'closed'">
+    <!-- `data-when` lets the Worker show the right one before the page leaves (worker/room.ts).
+         Hidden, not removed, so a name typed in the form is still there after leaving. -->
+    <p data-when="closed" :hidden="phase !== 'closed'">
       When I'm working, this room is open and you can talk with me. Refresh this page to check again.
     </p>
 
-    <!-- Hidden, not removed, so the name is still there after leaving. -->
-    <form v-show="phase === 'door'" @submit.prevent="join(($event.target as HTMLFormElement).nickname.value)">
+    <form data-when="open" :hidden="phase !== 'door'" @submit.prevent="join(($event.target as HTMLFormElement).nickname.value)">
       <label>Your name <input name="nickname" required maxlength="24" autocomplete="nickname"></label>
       <button>Join</button>
       <p><small>You'll join as a listener. Raise your hand to talk.</small></p>

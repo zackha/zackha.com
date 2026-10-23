@@ -58,6 +58,8 @@ Pages ship as plain HTML with inlined CSS: no client JavaScript (the `noScripts`
 
 `/room` is a voice room that exists only while I am in it. I open it at `/room/host` with a password; guests join as listeners, raise a hand, and talk once I invite them. Each guest's browser calls mine directly (WebRTC), and mine mixes what everyone hears (`app/composables/useRoomHost.ts`). A Durable Object (`worker/room.ts`) only knows whether I am in and passes each call's first message, so it runs on the free plan. Up to 10 people.
 
+Whether I am in is written into the pages as they are served: `/room` opens on the right sentence, and the home page shows a Live link in its footer only while the room is open. Elements marked `data-when="open"` or `data-when="closed"` are shown or hidden accordingly.
+
 ```sh
 npx wrangler secret put ROOM_PASSWORD   # once; use a long random one
 ```
@@ -66,7 +68,7 @@ The room needs the Worker, so try it with `pnpm preview`, with `ROOM_PASSWORD=..
 
 ## Deploy
 
-The site is fully prerendered and served by Cloudflare Workers static assets on `zackha.com`; a small Worker answers the room's socket (see `wrangler.jsonc`).
+The site is fully prerendered and served by Cloudflare Workers static assets on `zackha.com`; a small Worker answers the room's socket and fills in `/` and `/room` (see `wrangler.jsonc`).
 
 ```sh
 pnpm preview   # generate and serve locally with the Workers runtime
