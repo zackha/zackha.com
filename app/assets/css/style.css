@@ -13,6 +13,7 @@
   --rule: #2a2d30;
   --accent: #39ff14;
   --visited: #d6a8ff;
+  --leave: #ff6b6b;
 
   --mono: "SF Mono", "SFMono-Regular", ui-monospace, Menlo, "Cascadia Mono", Consolas, "DejaVu Sans Mono", monospace;
   --serif: Charter, "Bitstream Charter", "Sitka Text", Cambria, "Noto Serif", Georgia, serif;
@@ -425,6 +426,27 @@ footer {
 
 /* Vue drops the whitespace between buttons that the browser would have shown as a gap. */
 main button + button { margin-left: 0.35rem; }
+
+/* Everyone in the room: a name, a quiet line under it, a voice in bold. */
+.people { margin: 0; padding: 0; list-style: none; }
+.people li { padding: 0.35rem 0; line-height: 1.35; }
+.people small { display: block; color: var(--muted); font-size: 0.8125rem; }
+.people small.now { color: var(--fg-strong); }
+
+/* The host's names and the room's commands are words that act, in the site's green. */
+:is(.people, .controls) button { margin: 0; padding: 0; border: 0; background: none; font: inherit; color: var(--accent); cursor: pointer; text-underline-offset: 0.2em; }
+:is(.people, .controls) button:hover { text-decoration: underline; }
+:is(.people, .controls) button:focus-visible { outline: 1px dashed var(--accent); outline-offset: 3px; }
+
+/* Commands in brackets under a dotted rule, the old web's mark for a word that acts; the way out
+   on the right, in red. Screen readers skip the brackets. */
+.controls { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 0.4rem 1rem; margin: 2.25rem 0 1rem; padding-top: 0.75rem; border-top: 1px dotted var(--faint); font-size: 0.875rem; }
+.controls > span { display: flex; flex-wrap: wrap; gap: 0.4rem 0.75rem; }
+.controls button::before, .controls button::after { display: inline-block; color: var(--faint); }
+.controls button::before { content: "["; content: "[" / ""; }
+.controls button::after { content: "]"; content: "]" / ""; }
+.controls button:disabled { color: var(--faint); cursor: default; text-decoration: none; }
+.controls .out { color: var(--leave); }
 
 /* A shared screen fills the column; the browser would show it at its own size. */
 main > video { display: block; width: 100%; margin-bottom: 1rem; }

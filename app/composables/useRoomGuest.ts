@@ -30,7 +30,7 @@ export const useRoomGuest = () => {
 
   const me = computed(() => room.value?.people.find(person => person.id === myId.value))
   const status = computed(() => {
-    if (mic.blocked.value) return 'Your microphone is blocked. Allow it from the address bar, then press Turn mic on.'
+    if (mic.blocked.value) return 'Your microphone is blocked. Allow it from the address bar, then press unmute.'
     if (capture.problem.value) return capture.problem.value
     if (notice.value) return notice.value
     if (phase.value === 'closed' || phase.value === 'door') return doorStatus(door.value ?? CLOSED_DOOR)
@@ -38,8 +38,8 @@ export const useRoomGuest = () => {
     return me.value ? '' : 'Connecting to Sefa.'
   })
   const action = computed(() => me.value?.role === 'listener'
-    ? me.value.hand ? 'Lower hand' : 'Raise hand'
-    : mic.on.value ? 'Turn mic off' : 'Turn mic on')
+    ? me.value.hand ? 'lower hand' : 'raise hand'
+    : mic.on.value ? 'mute' : 'unmute')
 
   // A door that can't be read reads as closed.
   watch(door, value => phase.value = value?.open ? 'door' : 'closed', { immediate: true })
@@ -139,8 +139,12 @@ export const useRoomGuest = () => {
     me,
     action,
     capture,
-    // Someone else's screen, to watch; my own I can already see.
-    screen: computed(() => room.value?.sharing.screen && room.value.sharing.screen !== myId.value ? screen.value : undefined),
+    // The room's screen. Mine comes straight from my own capture, so seeing it costs nothing.
+    screen: computed(() => {
+      const holder = room.value?.sharing.screen
+      if (holder !== myId.value) return holder ? screen.value : undefined
+      return capture.tracks.screen && new MediaStream([capture.tracks.screen])
+    }),
     join,
     act,
     leave,

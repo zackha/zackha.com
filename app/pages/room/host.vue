@@ -37,14 +37,16 @@ watch(() => chosen.value && !room.people.includes(chosen.value), gone => gone &&
       </form>
     </template>
 
-    <!-- The lists come first; any news goes under the buttons. -->
+    <!-- The people come first, the commands under them, then any news and the shared screen. -->
     <template v-else>
-      <RoomPeople v-bind="room" me="host" @pick="choose" />
-      <p>
-        <button type="button" @click="toggleMic">Turn mic {{ micOn ? 'off' : 'on' }}</button>
-        <RoomShare :capture :sharing="room.sharing" me="host" />
-        <button type="button" @click="close()">Close the room</button>
-      </p>
+      <RoomPeople :people="room.people" :talking="room.talking" @pick="choose" />
+      <div class="controls">
+        <span>
+          <button type="button" @click="toggleMic">{{ micOn ? 'mute' : 'unmute' }}</button>
+          <RoomShare :capture :sharing="room.sharing" me="host" />
+        </span>
+        <button type="button" class="out" @click="close()">close the room</button>
+      </div>
       <p role="status">{{ status }}</p>
       <video v-if="screen" :srcObject="screen" autoplay muted playsinline controls />
     </template>

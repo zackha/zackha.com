@@ -9,8 +9,8 @@ const { phase, status, room, me, action, capture, screen, join, act, leave } = u
 
 <template>
   <main>
-    <!-- Outside the room the line says where the door stands. Inside, the lists come first and
-         any news goes under the buttons. -->
+    <!-- Outside the room the line says where the door stands. Inside, the people come first, the
+         commands under them, then any news and the shared screen. -->
     <p v-if="!me" role="status">{{ status }}</p>
 
     <!-- `data-when` lets the Worker show the right one before the page leaves (worker/room.ts).
@@ -26,12 +26,14 @@ const { phase, status, room, me, action, capture, screen, join, act, leave } = u
     </form>
 
     <template v-if="room && me">
-      <RoomPeople v-bind="room" :me="me.id" />
-      <p>
-        <button type="button" @click="act">{{ action }}</button>
-        <RoomShare v-if="me.role === 'speaker'" :capture :sharing="room.sharing" :me="me.id" />
-        <button type="button" @click="leave">Leave</button>
-      </p>
+      <RoomPeople :people="room.people" :talking="room.talking" />
+      <div class="controls">
+        <span>
+          <button type="button" @click="act">{{ action }}</button>
+          <RoomShare v-if="me.role === 'speaker'" :capture :sharing="room.sharing" :me="me.id" />
+        </span>
+        <button type="button" class="out" @click="leave">leave</button>
+      </div>
       <p role="status">{{ status }}</p>
       <video v-if="screen" :srcObject="screen" autoplay muted playsinline controls />
     </template>

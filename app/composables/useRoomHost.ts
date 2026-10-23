@@ -29,7 +29,7 @@ export const useRoomHost = () => {
 
   const find = (id: string) => room.people.find(person => person.id === id)
   const status = computed(() => {
-    if (mic.blocked.value) return 'Your microphone is blocked. Allow it from the address bar, then press Turn mic on.'
+    if (mic.blocked.value) return 'Your microphone is blocked. Allow it from the address bar, then press unmute.'
     if (capture.problem.value) return capture.problem.value
     // An open room speaks for itself: a raised hand shows in the list and the tab's title.
     return isOpen.value ? '' : closedWith.value
@@ -190,8 +190,8 @@ export const useRoomHost = () => {
     title,
     password,
     capture,
-    // A speaker's screen, to watch; my own I can already see.
-    screen: computed(() => room.sharing.screen !== HOST.id && screen.value ? new MediaStream([screen.value]) : undefined),
+    // The room's screen, a speaker's or mine; mine comes straight from my capture, at no cost.
+    screen: computed(() => screen.value && new MediaStream([screen.value])),
     micOn: mic.on,
     open,
     close,
