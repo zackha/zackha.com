@@ -11,7 +11,7 @@ const endings: Record<number, [Phase, string]> = {
 }
 
 // The room, as a guest. The host's browser holds the room and sends a copy whenever it changes;
-// this side only shows that copy and asks for two things: a raised hand and an open mic.
+// this side only shows that copy and asks: a raised hand, an open mic, a share.
 export const useRoomGuest = () => {
   // Read from the page, not fetched, so the first render matches what the Worker sent.
   const door = ref(import.meta.client ? doorInPage() : undefined)
@@ -20,7 +20,9 @@ export const useRoomGuest = () => {
   const notice = ref<string>()
   const room = shallowRef<RoomState>()
   const myId = ref<string>()
+  const screen = shallowRef<MediaStream>()
   const mic = useMicrophone()
+  const capture = useCapture()
   let call: ReturnType<typeof createCall> | undefined
   let socket: ReturnType<typeof connectRoom> | undefined
   let speaker: HTMLAudioElement | undefined
@@ -29,6 +31,7 @@ export const useRoomGuest = () => {
   const me = computed(() => room.value?.people.find(person => person.id === myId.value))
   const status = computed(() => {
     if (mic.blocked.value) return 'Your microphone is blocked. Allow it from the address bar, then press Turn mic on.'
+    if (capture.problem.value) return capture.problem.value
     if (notice.value) return notice.value
     if (phase.value === 'closed' || phase.value === 'door') return doorStatus(door.value ?? CLOSED_DOOR)
     if (!me.value) return 'Connecting to Sefa.'
@@ -41,7 +44,7 @@ export const useRoomGuest = () => {
 
   // A door that can't be read reads as closed.
   watch(door, value => phase.value = value?.open ? 'door' : 'closed', { immediate: true })
-  watch(mic.track, track => call?.pc.getSenders()[0]?.replaceTrack(track ?? null))
+  watch(mic.track, track => call && slots(call.pc).voice.sender.replaceTrack(track ?? null))
   watch(() => me.value?.role, (role, before) => {
     if (role === 'listener' && before === 'speaker') {
       mic.stop()
@@ -49,6 +52,23 @@ export const useRoomGuest = () => {
     }
     if (role === 'speaker') notice.value = undefined
   })
+  for (const kind of ['audio', 'screen'] as const) {
+    // Send what I share, and ask the host for the room's slot.
+    watch(() => capture.tracks[kind], (track) => {
+      if (!call) return
+      // Someone else holds the slot, say a screen brought its sound along: don't send what nobody hears.
+      const holder = room.value?.sharing[kind]
+      if (track && holder && holder !== myId.value) return capture.stop(kind)
+      slots(call.pc)[kind].sender.replaceTrack(track ?? null)
+      send({ [kind]: !!track })
+    })
+    // The host decides: mine ends when the slot goes to someone else or the host takes it back.
+    watch(() => room.value?.sharing[kind], (now, before) => {
+      if (!capture.tracks[kind] || now === myId.value || (before !== myId.value && !now)) return
+      capture.stop(kind)
+      if (before === myId.value && me.value?.role === 'speaker') notice.value = `Sefa stopped your ${kind === 'screen' ? 'screen' : 'audio'} share. You can still talk.`
+    })
+  }
 
   // Knock first: the Worker lets the guest in and hands over the servers the call may use.
   const join = (name: string) => {
@@ -63,8 +83,11 @@ export const useRoomGuest = () => {
         myId.value = message.id
         call = createCall(message.iceServers)
         const { pc, channel } = call
+        // The three slots the host's answer will match, in this order (see `slots`).
         pc.addTransceiver('audio', { direction: 'sendrecv' })
-        pc.ontrack = ({ track }) => sound.addTrack(track)
+        pc.addTransceiver('audio', { direction: 'sendonly' })
+        pc.addTransceiver('video', { direction: 'sendrecv' })
+        pc.ontrack = ({ track }) => track.kind === 'audio' ? sound.addTrack(track) : screen.value = new MediaStream([track])
         pc.onconnectionstatechange = () => pc.connectionState === 'failed' && end('door', UNREACHABLE)
         channel.onmessage = event => room.value = JSON.parse(event.data)
         socket?.send({ type: 'offer', sdp: await completeDescription(pc) })
@@ -89,7 +112,8 @@ export const useRoomGuest = () => {
     call?.pc.close()
     speaker?.pause()
     mic.stop()
-    call = socket = speaker = room.value = myId.value = undefined
+    capture.reset()
+    call = socket = speaker = room.value = myId.value = screen.value = undefined
   }
 
   const end = (where: Phase, message: string) => {
@@ -109,5 +133,18 @@ export const useRoomGuest = () => {
   // Chrome may open this page ahead of a click on its link; look at the door again when it is shown.
   onMounted(() => document.addEventListener('prerenderingchange', () => refresh(), { once: true }))
   onScopeDispose(hangUp)
-  return { phase, status, room, me, action, join, act, leave }
+  return {
+    phase,
+    status,
+    room,
+    me,
+    action,
+    capture,
+    // Someone else's screen, to watch; my own I can already see.
+    screen: computed(() => room.value?.sharing.screen && room.value.sharing.screen !== myId.value ? screen.value : undefined),
+    sharing: computed(() => room.value ? sharingSentence(room.value, myId.value) : ''),
+    join,
+    act,
+    leave,
+  }
 }

@@ -6,10 +6,17 @@ export interface Person {
   hand: boolean
 }
 
+// The one shared tab's audio and the one shared screen, each by the id of whoever shares it.
+export interface Sharing {
+  audio?: string
+  screen?: string
+}
+
 // The room as the host's browser sees it; guests get a copy whenever it changes.
 export interface RoomState {
   people: Person[]
   talking: string[]
+  sharing: Sharing
 }
 
 // What the visitor page learns before joining.
@@ -19,7 +26,7 @@ export interface Door {
 }
 
 // The only things a guest can ask of the host.
-export type GuestRequest = Partial<Pick<Person, 'hand' | 'mic'>>
+export type GuestRequest = Partial<Pick<Person, 'hand' | 'mic'> & Record<keyof Sharing, boolean>>
 
 // What `RTCPeerConnection` takes, spelled out because the Worker has no DOM types.
 export interface IceServer {

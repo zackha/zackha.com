@@ -1,7 +1,7 @@
 <script setup lang="ts">
 // Everyone in the room, as two plain lists. Whoever can be heard right now is in bold; the host's
 // page puts its controls next to each name through the slot.
-const { people, talking, me } = defineProps<{ people: Person[], talking: string[], me?: string }>()
+const { people, talking, sharing, me } = defineProps<{ people: Person[], talking: string[], sharing: Sharing, me?: string }>()
 defineSlots<{ default?: (props: { person: Person }) => unknown }>()
 
 const groups = computed(() => ({
@@ -15,6 +15,8 @@ const notes = (person: Person) => [
   person.id === me && 'you',
   person.role !== 'listener' && !person.mic && 'muted',
   person.hand && 'hand raised',
+  sharing.screen === person.id && 'sharing screen',
+  sharing.audio === person.id && 'sharing audio',
 ].filter(Boolean).join(', ')
 </script>
 

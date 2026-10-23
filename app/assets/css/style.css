@@ -421,6 +421,14 @@ footer {
 
 .newer-article { margin-left: auto; }
 
+/* ---------- Room ---------- */
+
+/* Vue drops the whitespace between buttons that the browser would have shown as a gap. */
+main button + button { margin-left: 0.35rem; }
+
+/* A shared screen fills the column; the browser would show it at its own size. */
+main > video { display: block; width: 100%; margin-bottom: 1rem; }
+
 @media (max-width: 480px) {
   #profile .research-list li {
     grid-template-columns: minmax(0, 1fr);
