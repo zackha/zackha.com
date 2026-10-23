@@ -1,6 +1,6 @@
 <script setup lang="ts">
 // Where I open the room. Linked from nowhere; the password keeps everyone else out.
-const { room, isOpen, status, title, capture, screen, sharing, micOn, open, close, toggleMic, invite, demote, unshare, remove } = useRoomHost()
+const { room, isOpen, status, title, password, capture, screen, sharing, micOn, open, close, toggleMic, invite, demote, unshare, remove } = useRoomHost()
 useSeoMeta({ title, robots: 'noindex, nofollow' })
 
 // One menu per person: it acts at once, then goes back to "Actions".
@@ -20,9 +20,9 @@ const act = (person: Person, menu: HTMLSelectElement) => {
     <p role="status">{{ status }}</p>
 
     <form v-if="!isOpen" @submit.prevent="open(($event.target as HTMLFormElement).password.value)">
-      <label>Password <input name="password" type="password" required autocomplete="current-password"></label>
+      <label>Password <input name="password" type="password" required autocomplete="current-password" :value="password"></label>
       <button>Open the room</button>
-      <p><small>Your browser can save the password.</small></p>
+      <p><small>This browser remembers it once the room opens.</small></p>
     </form>
 
     <template v-else>

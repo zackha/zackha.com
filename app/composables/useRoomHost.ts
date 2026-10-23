@@ -6,6 +6,9 @@ const closings: Record<number, string> = {
   [CloseCode.replaced]: 'You opened the room in another tab, so this one let go of it.',
 }
 
+// Kept in this browser once the room opens with it, so the form comes filled next time.
+const SAVED = 'room-password'
+
 // Closing this tab closes the room, so the browser asks first.
 const warn = (event: BeforeUnloadEvent) => event.preventDefault()
 
@@ -15,6 +18,7 @@ export const useRoomHost = () => {
   const room = reactive<RoomState>({ people: [], talking: [], sharing: {} })
   const isOpen = ref(false)
   const closedWith = ref('The room is closed.')
+  const password = ref<string>()
   const mic = useMicrophone()
   const capture = useCapture()
   const calls = new Map<string, ReturnType<typeof createCall>>()
@@ -69,10 +73,16 @@ export const useRoomHost = () => {
     if (me) me.mic = on
   })
 
-  const open = (password: string) => {
+  const open = (typed: string) => {
     if (socket) return
+    password.value = typed
     mixer = createMixer(HOST.id)
-    socket = connectRoom({ type: 'open', password }, receive, code => close(closings[code] ?? 'Your connection dropped, so the room closed.'))
+    socket = connectRoom({ type: 'open', password: typed }, receive, (code) => {
+      close(closings[code] ?? 'Your connection dropped, so the room closed.')
+      if (code !== CloseCode.unauthorized) return
+      password.value = undefined
+      localStorage.removeItem(SAVED)
+    })
   }
 
   const receive = (message: FromRoom) => {
@@ -82,6 +92,7 @@ export const useRoomHost = () => {
       isOpen.value = true
       listening = setInterval(listen, 150)
       addEventListener('beforeunload', warn)
+      localStorage.setItem(SAVED, password.value!)
     }
     // One call per guest. An offer this browser can't take gets its sender sent out, not left on the list.
     if (message.type === 'offer' && !calls.has(message.id)) welcome(message).catch(() => remove(message.id))
@@ -170,6 +181,8 @@ export const useRoomHost = () => {
     closedWith.value = message
   }
 
+  // Read after hydration: the prerendered page has no password in it.
+  onMounted(() => password.value = localStorage.getItem(SAVED) ?? undefined)
   // Following a link away closes the room as surely as closing the tab, so ask the same way.
   onBeforeRouteLeave(() => !isOpen.value || confirm('Leave this page? The room will close for everyone.'))
   onScopeDispose(() => close())
@@ -178,6 +191,7 @@ export const useRoomHost = () => {
     isOpen,
     status,
     title,
+    password,
     capture,
     // A speaker's screen, to watch; my own I can already see.
     screen: computed(() => room.sharing.screen !== HOST.id && screen.value ? new MediaStream([screen.value]) : undefined),

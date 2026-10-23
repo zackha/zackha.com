@@ -56,7 +56,7 @@ Pages ship as plain HTML with inlined CSS: no client JavaScript (the `noScripts`
 
 ## Room
 
-`/room` is a voice room that exists only while I am in it. I open it at `/room/host` with a password; guests join as listeners, raise a hand, and talk once I invite them. Each guest's browser calls mine directly (WebRTC), and mine mixes what everyone hears (`app/composables/useRoomHost.ts`). A Durable Object (`worker/room.ts`) only knows whether I am in and passes each call's first message, so it runs on the free plan. Up to 10 people.
+`/room` is a voice room that exists only while I am in it. I open it at `/room/host` with a password, which that browser then remembers; guests join as listeners, raise a hand, and talk once I invite them. Each guest's browser calls mine directly (WebRTC), and mine mixes what everyone hears (`app/composables/useRoomHost.ts`). A Durable Object (`worker/room.ts`) only knows whether I am in and passes each call's first message, so it runs on the free plan. Up to 10 people.
 
 I and anyone on stage can share a browser tab's audio (stereo, 128 kbps, so music sounds like music) or a screen; the browser offers to bring the screen's sound along, and a screen share replaces any audio share, so there is only ever one share to manage. Stopping the screen leaves its sound playing. The room has one shared audio and one shared screen at a time; microphones stay free. A speaker's screen reaches the others through my browser, which also decides who may share (`app/composables/useCapture.ts`). Sharing needs a browser with `getDisplayMedia`: desktop browsers, and Safari on iOS 27 for screens; sound comes from a tab in Chromium-based desktop browsers (Chrome, Edge), and with a whole screen in Chrome on Windows and recent macOS.
 
