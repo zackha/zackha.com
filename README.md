@@ -52,11 +52,21 @@ Every page has Open Graph and Twitter card tags. An article without an `image` g
 
 ## Performance
 
-Pages ship as plain HTML with inlined CSS: no client JavaScript (`features.noScripts`), no web fonts (system serif stack), no external stylesheets. Links are prefetched with speculation rules.
+Pages ship as plain HTML with inlined CSS: no client JavaScript (the `noScripts` route rule), no web fonts (system serif stack), no external stylesheets. Links are prefetched with speculation rules. The room is the one exception: its two pages hydrate.
+
+## Room
+
+`/room` is a voice room that exists only while I am in it. I open it at `/room/host` with a password; guests join as listeners, raise a hand, and talk once I invite them. Each guest's browser calls mine directly (WebRTC), and mine mixes what everyone hears (`app/composables/useRoomHost.ts`). A Durable Object (`worker/room.ts`) only knows whether I am in and passes each call's first message, so it runs on the free plan. Up to 10 people.
+
+```sh
+npx wrangler secret put ROOM_PASSWORD   # once; use a long random one
+```
+
+The room needs the Worker, so try it with `pnpm preview`, with `ROOM_PASSWORD=...` in `.dev.vars`; under `pnpm dev` it stays closed.
 
 ## Deploy
 
-The site is fully prerendered and served by Cloudflare Workers static assets on `zackha.com` (see `wrangler.jsonc`).
+The site is fully prerendered and served by Cloudflare Workers static assets on `zackha.com`; a small Worker answers the room's socket (see `wrangler.jsonc`).
 
 ```sh
 pnpm preview   # generate and serve locally with the Workers runtime

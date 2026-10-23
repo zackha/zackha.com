@@ -69,6 +69,7 @@ export const useHomePage = async () => {
   const links = [
     { label: 'GitHub', href: 'https://github.com/zackha', title: 'GitHub profile', newTab: true },
     { label: "PR's", href: 'https://prs.zackha.com', title: 'Recent pull requests', newTab: true },
+    { label: 'Room', href: '/room', title: 'Talk with me while I work', newTab: false },
     { label: 'Resume', href: '/Sefa_Bulak_resume.pdf', title: 'View resume (PDF)', newTab: true },
     { label: 'Sponsor', href: 'https://github.com/sponsors/zackha', title: 'Sponsor my work', newTab: true },
     { label: 'Email', href: 'mailto:zckhtln@icloud.com', title: 'Send me an email', newTab: false },

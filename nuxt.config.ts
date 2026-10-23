@@ -13,10 +13,16 @@ export default defineNuxtConfig({
   modules: ['@nuxt/content'],
   css: ['~/assets/css/style.css'],
   features: {
-    // Every page is static content: ship HTML and inlined CSS only. No hydration, no payload,
-    // no JS chunks; links are prefetched/prerendered through speculation rules instead.
-    noScripts: 'production',
     inlineStyles: true,
+  },
+  $production: {
+    routeRules: {
+      // Every page is static content: ship HTML and inlined CSS only. No hydration, no payload,
+      // no JS chunks; links are prefetched/prerendered through speculation rules instead.
+      '/**': { noScripts: true },
+      // The voice room is the one live page.
+      '/room/**': { noScripts: false },
+    },
   },
   experimental: {
     // Without client navigation nothing reads the app manifest; don't emit it.
@@ -78,6 +84,8 @@ export default defineNuxtConfig({
         '/sitemap.xml',
         '/robots.txt',
         '/feed.xml',
+        // Linked from nowhere on purpose: it is where I open the room.
+        '/room/host',
         '/og/home.png',
         ...cardSlugs.map(slug => `/og/${slug}.png`),
       ],

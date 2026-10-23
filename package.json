@@ -11,7 +11,7 @@
     "generate": "nuxt generate",
     "preview": "nuxt generate && wrangler dev",
     "deploy": "nuxt generate && wrangler deploy",
-    "postinstall": "nuxt prepare"
+    "postinstall": "nuxt prepare && wrangler types worker/worker-configuration.d.ts"
   },
   "dependencies": {
     "@nuxt/content": "^3.16.2",

@@ -1,5 +1,5 @@
-// Pages ship without client scripts (`features.noScripts`), so markup kept only for hydration or
-// for tooling is dead weight. On a math-heavy article it is roughly a third of the HTML.
+// Pages ship without client scripts (the `noScripts` route rule), so markup kept only for hydration
+// or for tooling is dead weight. On a math-heavy article it is roughly a third of the HTML.
 const removals: RegExp[] = [
   // Vue's fragment and v-if anchors exist for hydration, which never happens.
   /<!--\[-->|<!--\]-->|<!---->/g,
@@ -14,7 +14,8 @@ const removals: RegExp[] = [
 const trim = (html: string) => removals.reduce((result, pattern) => result.replace(pattern, ''), html)
 
 export default defineNitroPlugin((nitroApp) => {
-  nitroApp.hooks.hook('render:html', (html) => {
-    html.body = html.body.map(trim)
+  nitroApp.hooks.hook('render:html', (html, { event }) => {
+    // The room hydrates, and hydration needs Vue's anchors.
+    if (getRouteRules(event).noScripts) html.body = html.body.map(trim)
   })
 })

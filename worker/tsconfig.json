@@ -1,0 +1,14 @@
+{
+  // The Worker runs on workerd, not in a browser: its own types, kept apart from Nuxt's.
+  "compilerOptions": {
+    "target": "ESNext",
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "lib": ["ESNext"],
+    "types": [],
+    "strict": true,
+    "noEmit": true,
+    "skipLibCheck": true
+  },
+  "include": ["./**/*.ts", "../shared/**/*.ts"]
+}
