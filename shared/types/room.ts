@@ -21,15 +21,24 @@ export interface Door {
 // The only things a guest can ask of the host.
 export type GuestRequest = Partial<Pick<Person, 'hand' | 'mic'>>
 
+// What `RTCPeerConnection` takes, spelled out because the Worker has no DOM types.
+export interface IceServer {
+  urls: string | string[]
+  username?: string
+  credential?: string
+}
+
 // Over the room's WebSocket, to and from the Worker.
 export type ToRoom =
   | { type: 'open', password: string }
-  | { type: 'offer', name: string, sdp: string }
+  | { type: 'join', name: string }
+  | { type: 'offer', sdp: string }
   | { type: 'answer', id: string, sdp: string }
   | { type: 'remove', id: string }
 
 export type FromRoom =
-  | { type: 'opened' }
+  | { type: 'opened', iceServers: IceServer[] }
+  | { type: 'admitted', id: string, iceServers: IceServer[] }
   | { type: 'offer', id: string, name: string, sdp: string }
   | { type: 'answer', id: string, sdp: string }
   | { type: 'left', id: string }

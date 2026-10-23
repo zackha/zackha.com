@@ -1,9 +1,13 @@
 import { DurableObject } from 'cloudflare:workers'
-import type { Door, FromRoom } from '../shared/types/room'
+import type { Door, FromRoom, IceServer } from '../shared/types/room'
 import { CLOSED_DOOR, CloseCode, ROOM_CAPACITY, ROOM_PATH, cleanName, doorStatus } from '../shared/utils/room'
 
-// Kept on the socket itself, so it survives the object hibernating between messages.
-type Seat = { role: 'host' } | { role: 'guest', id: string } | { role: 'replaced' }
+// Kept on the socket itself, so it survives the object hibernating between messages. `turn` is the
+// relay credential handed to this person, revoked when they go.
+type Seat = { turn?: string } & ({ role: 'host' | 'replaced' } | { role: 'guest', id: string, name: string })
+
+const TURN_KEYS = 'https://rtc.live.cloudflare.com/v1/turn/keys'
+const STUN: IceServer[] = [{ urls: 'stun:stun.cloudflare.com:3478' }]
 
 // The room's door. It knows whether I am in, lets guests in, and passes each call's first offer
 // and answer between a guest's browser and mine. Voices and the room itself then go browser to
@@ -22,15 +26,20 @@ export class Room extends DurableObject<Env> {
     return new Response(null, { status: 101, webSocket: client })
   }
 
-  webSocketMessage(ws: WebSocket, data: string | ArrayBuffer) {
+  async webSocketMessage(ws: WebSocket, data: string | ArrayBuffer) {
     const message = parse(data)
     const seat = seatOf(ws)
-    if (!seat) this.admit(ws, message)
-    else if (seat.role === 'host') this.relay(message)
+    if (!seat) return this.admit(ws, message)
+    if (seat.role === 'host') return this.relay(message)
+    // After joining, a guest sends one thing: the offer for its call with me.
+    if (seat.role === 'guest' && message.type === 'offer') {
+      this.host()?.send(json({ type: 'offer', id: seat.id, name: seat.name, sdp: String(message.sdp) }))
+    }
   }
 
   webSocketClose(ws: WebSocket) {
     const seat = seatOf(ws)
+    this.revoke(seat?.turn)
     if (seat?.role === 'host') this.sendOut(CloseCode.gone)
     if (seat?.role === 'guest') this.host()?.send(json({ type: 'left', id: seat.id }))
   }
@@ -39,26 +48,57 @@ export class Room extends DurableObject<Env> {
     this.webSocketClose(ws)
   }
 
-  private admit(ws: WebSocket, message: Record<string, unknown>) {
+  private async admit(ws: WebSocket, message: Record<string, unknown>) {
     if (message.type === 'open') {
       // Without a password set, nobody opens the room.
       if (!this.env.ROOM_PASSWORD || message.password !== this.env.ROOM_PASSWORD) return ws.close(CloseCode.unauthorized)
       // A newer host tab takes over. Guests were calling the old tab, so they start over too.
       const old = this.host()
-      old?.serializeAttachment({ role: 'replaced' } satisfies Seat)
+      old?.serializeAttachment({ ...seatOf(old), role: 'replaced' } satisfies Seat)
       old?.close(CloseCode.replaced)
       this.sendOut(CloseCode.gone)
-      ws.serializeAttachment({ role: 'host' } satisfies Seat)
-      return ws.send(json({ type: 'opened' }))
+      const iceServers = await this.seat(ws, { role: 'host' })
+      if (iceServers) ws.send(json({ type: 'opened', iceServers }))
+      return
     }
-    const host = this.host()
-    if (message.type !== 'offer' || !host) return ws.close(CloseCode.closed)
+    if (message.type !== 'join' || !this.host()) return ws.close(CloseCode.closed)
     if (this.guests().length + 1 >= ROOM_CAPACITY) return ws.close(CloseCode.full)
     // The id is made here, so a guest can't speak for someone else.
     const id = crypto.randomUUID()
-    ws.serializeAttachment({ role: 'guest', id } satisfies Seat)
-    host.send(json({ type: 'offer', id, name: cleanName(message.name), sdp: String(message.sdp) }))
+    const iceServers = await this.seat(ws, { role: 'guest', id, name: cleanName(message.name) })
+    if (iceServers) ws.send(json({ type: 'admitted', id, iceServers }))
   }
+
+  // Takes the place before asking Cloudflare for relay credentials, so nobody slips past the
+  // capacity check meanwhile. Returns nothing if the socket closed while waiting.
+  private async seat(ws: WebSocket, seat: Seat) {
+    ws.serializeAttachment(seat)
+    const iceServers = await this.iceServers()
+    const turn = iceServers.find(server => server.username)?.username
+    if (ws.readyState !== WebSocket.READY_STATE_OPEN) return this.revoke(turn)
+    ws.serializeAttachment({ ...seat, turn })
+    return iceServers
+  }
+
+  // Short-lived TURN credentials, used by the browser only when no direct path works. Without a
+  // key, or if Cloudflare doesn't answer, calls go on with STUN alone. A working day's TTL; the
+  // credential is revoked as soon as its holder leaves.
+  private async iceServers(): Promise<IceServer[]> {
+    if (!this.env.TURN_KEY_ID) return STUN
+    const response = await this.turn('generate-ice-servers', { ttl: 86_400 }).catch(() => undefined)
+    return response?.ok ? (await response.json<{ iceServers: IceServer[] }>()).iceServers : STUN
+  }
+
+  private revoke(username?: string) {
+    if (username) this.ctx.waitUntil(this.turn(`${username}/revoke`).catch(() => {}))
+  }
+
+  // Cloudflare's TURN key API. The key itself never leaves the Worker.
+  private turn = (path: string, body?: object) => fetch(`${TURN_KEYS}/${this.env.TURN_KEY_ID}/credentials/${path}`, {
+    method: 'POST',
+    headers: { 'Authorization': `Bearer ${this.env.TURN_KEY_API_TOKEN}`, 'Content-Type': 'application/json' },
+    body: body && JSON.stringify(body),
+  })
 
   private relay(message: Record<string, unknown>) {
     const guest = this.guests().find(ws => (seatOf(ws) as { id: string }).id === message.id)

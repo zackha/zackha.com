@@ -20,6 +20,7 @@ export const useRoomHost = () => {
   let socket: ReturnType<typeof connectRoom> | undefined
   let mixer: ReturnType<typeof createMixer> | undefined
   let listening: ReturnType<typeof setInterval> | undefined
+  let iceServers: IceServer[] = []
 
   const find = (id: string) => room.people.find(person => person.id === id)
   const hands = computed(() => room.people.filter(person => person.hand))
@@ -53,18 +54,19 @@ export const useRoomHost = () => {
 
   const receive = (message: FromRoom) => {
     if (message.type === 'opened') {
+      iceServers = message.iceServers
       room.people = [{ ...HOST }]
       isOpen.value = true
       listening = setInterval(listen, 150)
       addEventListener('beforeunload', warn)
     }
-    // An offer this browser can't take gets its sender sent out, not left on the list.
-    if (message.type === 'offer') welcome(message).catch(() => remove(message.id))
+    // One call per guest. An offer this browser can't take gets its sender sent out, not left on the list.
+    if (message.type === 'offer' && !calls.has(message.id)) welcome(message).catch(() => remove(message.id))
     if (message.type === 'left') drop(message.id)
   }
 
   const welcome = async ({ id, name, sdp }: Extract<FromRoom, { type: 'offer' }>) => {
-    const call = createCall()
+    const call = createCall(iceServers)
     calls.set(id, call)
     room.people.push({ id, name, role: 'listener', mic: false, hand: false })
     const mix = mixer!.add(id)

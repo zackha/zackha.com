@@ -30,9 +30,10 @@ export const doorInPage = (): Door | undefined => {
 }
 
 // One call between a guest's browser and mine: an audio slot each way, and a data channel for the
-// room. Both ends open the channel with the same id, so it needs no negotiation of its own.
-export const createCall = () => {
-  const pc = new RTCPeerConnection({ iceServers: [{ urls: 'stun:stun.cloudflare.com:3478' }] })
+// room. Both ends open the channel with the same id, so it needs no negotiation of its own. The
+// servers come from the Worker; a TURN relay among them is used only if no direct path works.
+export const createCall = (iceServers: IceServer[]) => {
+  const pc = new RTCPeerConnection({ iceServers })
   const channel = pc.createDataChannel('room', { negotiated: true, id: 0 })
   return { pc, channel }
 }
@@ -44,7 +45,8 @@ export const completeDescription = async (pc: RTCPeerConnection) => {
   await new Promise<void>((resolve) => {
     if (pc.iceGatheringState === 'complete') return resolve()
     pc.addEventListener('icegatheringstatechange', () => pc.iceGatheringState === 'complete' && resolve())
-    setTimeout(resolve, 2000)
+    // Relay addresses can take longer than direct ones on strict networks.
+    setTimeout(resolve, 5000)
   })
   return pc.localDescription!.sdp
 }

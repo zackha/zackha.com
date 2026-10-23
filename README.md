@@ -60,11 +60,15 @@ Pages ship as plain HTML with inlined CSS: no client JavaScript (the `noScripts`
 
 Whether I am in is written into the pages as they are served: `/room` opens on the right sentence, and the home page shows a Live link in its footer only while the room is open. Elements marked `data-when="open"` or `data-when="closed"` are shown or hidden accordingly.
 
+When a direct call can't be made, say between two devices on the same home network or from a strict corporate one, the browser falls back to Cloudflare's TURN relay. The Durable Object hands short-lived relay credentials to each person it lets in and revokes them when they leave; without a TURN key, calls use STUN alone.
+
 ```sh
-npx wrangler secret put ROOM_PASSWORD   # once; use a long random one
+npx wrangler secret put ROOM_PASSWORD        # once; use a long random one
+npx wrangler secret put TURN_KEY_ID          # from Cloudflare Realtime > TURN Keys
+npx wrangler secret put TURN_KEY_API_TOKEN
 ```
 
-The room needs the Worker, so try it with `pnpm preview`, with `ROOM_PASSWORD=...` in `.dev.vars`; under `pnpm dev` it stays closed.
+The room needs the Worker, so try it with `pnpm preview`, with the same three values in `.dev.vars`; under `pnpm dev` it stays closed.
 
 ## Deploy
 

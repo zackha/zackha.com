@@ -50,23 +50,26 @@ export const useRoomGuest = () => {
     if (role === 'speaker') notice.value = undefined
   })
 
-  const join = async (name: string) => {
+  // Knock first: the Worker lets the guest in and hands over the servers the call may use.
+  const join = (name: string) => {
     notice.value = undefined
     phase.value = 'call'
-    call = createCall()
-    const { pc, channel } = call
-    pc.addTransceiver('audio', { direction: 'sendrecv' })
     // Started by the Join click, so the browser lets it play once the room's sound arrives.
     const sound = new MediaStream()
     speaker = Object.assign(new Audio(), { srcObject: sound })
     speaker.play().catch(() => {})
-    pc.ontrack = ({ track }) => sound.addTrack(track)
-    pc.onconnectionstatechange = () => pc.connectionState === 'failed' && end('door', UNREACHABLE)
-    channel.onmessage = event => room.value = JSON.parse(event.data)
-    socket = connectRoom({ type: 'offer', name, sdp: await completeDescription(pc) }, (message) => {
-      if (message.type !== 'answer') return
-      myId.value = message.id
-      pc.setRemoteDescription({ type: 'answer', sdp: message.sdp })
+    socket = connectRoom({ type: 'join', name }, async (message) => {
+      if (message.type === 'admitted') {
+        myId.value = message.id
+        call = createCall(message.iceServers)
+        const { pc, channel } = call
+        pc.addTransceiver('audio', { direction: 'sendrecv' })
+        pc.ontrack = ({ track }) => sound.addTrack(track)
+        pc.onconnectionstatechange = () => pc.connectionState === 'failed' && end('door', UNREACHABLE)
+        channel.onmessage = event => room.value = JSON.parse(event.data)
+        socket?.send({ type: 'offer', sdp: await completeDescription(pc) })
+      }
+      if (message.type === 'answer') call?.pc.setRemoteDescription({ type: 'answer', sdp: message.sdp })
     }, code => end(...endings[code] ?? ['door', UNREACHABLE]))
     timeout = setTimeout(() => !room.value && end('door', UNREACHABLE), 15_000)
   }
