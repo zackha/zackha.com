@@ -48,7 +48,7 @@ Math (`$...$`, `$$...$$`) is rendered to MathML at build time and typeset by the
 
 ## Sharing and search
 
-Every page has Open Graph and Twitter card tags. An article without an `image` gets a title card generated at build time (`/og/<slug>.png`, drawn by `server/utils/ogImage.ts`); the home page uses `/og/home.png`. Articles also carry Google Scholar (Highwire) tags and `ScholarlyArticle` structured data, and are listed in `/sitemap.xml` and the Atom feed at `/feed.xml` (linked as RSS in the home page footer; `/rss.xml` and `/atom.xml` redirect to it).
+Every page has Open Graph and Twitter card tags. An article without an `image` gets a title card generated at build time (`/og/<slug>.png`, drawn by `server/utils/ogImage.ts`); the home page uses `/og/home.png` and the room `/og/room.png`. Articles also carry Google Scholar (Highwire) tags and `ScholarlyArticle` structured data, and are listed in `/sitemap.xml` (with `/` and `/room`) and the Atom feed at `/feed.xml` (linked as RSS in the home page footer; `/rss.xml` and `/atom.xml` redirect to it).
 
 ## Performance
 

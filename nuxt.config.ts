@@ -87,6 +87,7 @@ export default defineNuxtConfig({
         // Linked from nowhere on purpose: it is where I open the room.
         '/room/host',
         '/og/home.png',
+        '/og/room.png',
         ...cardSlugs.map(slug => `/og/${slug}.png`),
       ],
       failOnError: true,

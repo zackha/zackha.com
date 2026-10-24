@@ -1,8 +1,5 @@
 <script setup lang="ts">
-useSeoMeta({
-  title: `Room — ${SITE_NAME}`,
-  description: 'A voice room that is open while I work. Listen in, and raise your hand to talk.',
-})
+useRoomSeo()
 
 const { phase, status, room, member, me, join, leave } = useRoomGuest()
 </script>
