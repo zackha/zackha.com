@@ -16,14 +16,14 @@
   "dependencies": {
     "@nuxt/content": "^3.16.2",
     "@resvg/resvg-js": "^2.6.2",
-    "nuxt": "^4.6.1",
+    "nuxt": "^4.6.2",
     "rehype-katex": "^7.0.1",
     "remark-math": "^6.0.0",
-    "satori": "^0.62.0",
+    "satori": "^0.63.2",
     "vue": "^3.5.44",
     "vue-router": "^5.4.0"
   },
   "devDependencies": {
-    "wrangler": "^4.151.0"
+    "wrangler": "^4.152.0"
   }
 }
