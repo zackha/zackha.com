@@ -27,6 +27,11 @@ export const useRoomMember = (
   })
 
   watch(mic.track, track => send('voice', track))
+  // Someone new comes in: everyone already here hears it, in their own browser. The newcomer's
+  // first copy of the room has nothing before it, so they don't hear themself arrive.
+  watch(() => room()?.people.map(person => person.id), (now, before) => {
+    if (before?.length && now?.some(id => !before.includes(id))) chime()
+  })
   watch(() => person.value?.role, (role, before) => {
     if (role === 'listener' && before && before !== 'listener') {
       mic.stop()
